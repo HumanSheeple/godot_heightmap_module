@@ -1,4 +1,1 @@
-Dear Zylann, here's fork of the terrain module with a basic dummy brush_panel. Is that better than the lodseamdump now? Cheers --HumanSheeple
-
-
-
+Dear Zylann, I hope you appreciate all the hard work I have put in and made the brush panel back to status quo how it was from the GDScript prototype.

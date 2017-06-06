@@ -10,6 +10,7 @@
 #include "scene/gui/item_list.h"
 #include "height_map_brush.h"
 
+
 class HeightMapBrushPanel : public Control {
 	GDCLASS(HeightMapBrushPanel, Control)
 protected:
@@ -17,6 +18,7 @@ protected:
 public:
 	HeightMapBrushPanel();
 	~HeightMapBrushPanel();
+
     HButtonArray *_Terrain_Brush_Mode_Selector;
     Label *_Terrain_Size_Label;
     Label *_Terrain_Opacity_Label;
@@ -42,6 +44,7 @@ public:
     void _on_size_line_edit_entered(String size_text);
     void _on_opacity_slider_value_changed(int opacity_value);
     void _on_opacity_line_edit_entered(String opacity_text);
+    Ref<ImageTexture> make_brush_icon(const uint8_t* p_brush_png);
 };
 
 #endif // HEIGHT_MAP_BRUSH_PANEL_H
