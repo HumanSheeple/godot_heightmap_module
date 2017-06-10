@@ -31,6 +31,8 @@ public:
     ItemList *_Terrain_Texture_ItemList;
     ItemList *_Terrain_Brush_ItemList;
     Button *_Terrain_Save_To_Image_Button;
+    int _Brush_Size = 1;
+    int _Brush_Opacity = 1;
 
     enum BrushMode{
         TERRAIN_BRUSH_MODE_ADD = 0,
@@ -39,6 +41,8 @@ public:
         TERRAIN_BRUSH_MODE_FLATTEN = 3,
         TERRAIN_BRUSH_MODE_TEXTURE = 4
     };
+    BrushMode _BRUSHMODE;
+    BrushMode get_mode() const { return _BRUSHMODE; }
     void _brush_mode(int b_mode);
     void _on_size_slider_value_changed(int size_value);
     void _on_size_line_edit_entered(String size_text);

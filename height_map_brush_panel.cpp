@@ -106,18 +106,23 @@ void HeightMapBrushPanel::_brush_mode(int b_mode) {
     switch (b_mode){
         case TERRAIN_BRUSH_MODE_ADD: {
         _Terrain_Flatten_Height_Line_Edit->set_editable(false);
+        _BRUSHMODE = TERRAIN_BRUSH_MODE_ADD;
         }break;
         case TERRAIN_BRUSH_MODE_SUBTRACT:{
          _Terrain_Flatten_Height_Line_Edit->set_editable(false);
+         _BRUSHMODE = TERRAIN_BRUSH_MODE_SUBTRACT;
         }break;
         case TERRAIN_BRUSH_MODE_SMOOTH:{
          _Terrain_Flatten_Height_Line_Edit->set_editable(false);
+         _BRUSHMODE = TERRAIN_BRUSH_MODE_SMOOTH;
         }break;
         case TERRAIN_BRUSH_MODE_FLATTEN:{
          _Terrain_Flatten_Height_Line_Edit->set_editable(true);
+         _BRUSHMODE = TERRAIN_BRUSH_MODE_FLATTEN;
         }break;
         case TERRAIN_BRUSH_MODE_TEXTURE:{
          _Terrain_Flatten_Height_Line_Edit->set_editable(false);
+         _BRUSHMODE = TERRAIN_BRUSH_MODE_TEXTURE;
         }break;
     }
 }
@@ -125,24 +130,28 @@ void HeightMapBrushPanel::_brush_mode(int b_mode) {
 void HeightMapBrushPanel::_on_size_slider_value_changed(int size_value){
     String size_string;
     size_string = String::num(size_value);
+    _Brush_Size = size_value;
     _Terrain_Size_Line_Edit->set_text(size_string);
 }
 
 void HeightMapBrushPanel::_on_size_line_edit_entered(String size_text){
     int size_value;
     size_value = String(size_text).to_int();
+    _Brush_Size = size_value;
     _Terrain_Size_HSlider->set_value(size_value);
 }
 
 void HeightMapBrushPanel::_on_opacity_slider_value_changed(int opacity_value){
     String opacity_line_edit_string;
     opacity_line_edit_string = String::num(opacity_value);
+    _Brush_Opacity = opacity_value;
     _Terrain_Opacity_Line_Edit->set_text(opacity_line_edit_string);
 }
 
 void HeightMapBrushPanel::_on_opacity_line_edit_entered(String opacity_text){
     int opacity_slider_value;
     opacity_slider_value = String(opacity_text).to_int();
+    _Brush_Opacity = opacity_slider_value;
     _Terrain_Opacity_HSlider->set_value(opacity_slider_value);
 }
 
@@ -159,7 +168,6 @@ void HeightMapBrushPanel::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_on_size_line_edit_entered", "size_text"), &HeightMapBrushPanel::_on_size_line_edit_entered);
     ClassDB::bind_method(D_METHOD("_on_opacity_slider_value_changed", "opacity_value"), &HeightMapBrushPanel::_on_opacity_slider_value_changed);
     ClassDB::bind_method(D_METHOD("_on_opacity_line_edit_entered", "opacity_text"), &HeightMapBrushPanel::_on_opacity_line_edit_entered);
-
 
     BIND_CONSTANT(TERRAIN_BRUSH_MODE_ADD);
     BIND_CONSTANT(TERRAIN_BRUSH_MODE_SUBTRACT);
@@ -276,6 +284,18 @@ HeightMapBrushPanel::HeightMapBrushPanel() {
 }
 
 HeightMapBrushPanel::~HeightMapBrushPanel() {
+    memdelete(_Terrain_Brush_Mode_Selector);
+    memdelete(_Terrain_Flatten_Height_Label);
+    memdelete(_Terrain_Flatten_Height_Line_Edit);
+    memdelete(_Terrain_Opacity_HSlider);
+    memdelete(_Terrain_Opacity_Label);
+    memdelete(_Terrain_Opacity_Line_Edit);
+    memdelete(_Terrain_Save_To_Image_Button);
+    memdelete(_Terrain_Size_HSlider);
+    memdelete(_Terrain_Size_Label);
+    memdelete(_Terrain_Size_Line_Edit);
+    memdelete(_Terrain_Brush_ItemList);
+    memdelete(_Terrain_Texture_ItemList);
 
 }
 
