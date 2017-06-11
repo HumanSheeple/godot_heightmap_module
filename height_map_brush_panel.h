@@ -33,6 +33,7 @@ public:
     Button *_Terrain_Save_To_Image_Button;
     int _Brush_Size = 1;
     int _Brush_Opacity = 1;
+    int _Brush_Flatten_Height = 0;
 
     enum BrushMode{
         TERRAIN_BRUSH_MODE_ADD = 0,
@@ -48,6 +49,7 @@ public:
     void _on_size_line_edit_entered(String size_text);
     void _on_opacity_slider_value_changed(int opacity_value);
     void _on_opacity_line_edit_entered(String opacity_text);
+    void _on_flatten_line_edit_entered(String flatten_text);
     Ref<ImageTexture> make_brush_icon(const uint8_t* p_brush_png);
 };
 
