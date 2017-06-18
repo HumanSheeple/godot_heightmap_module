@@ -71,8 +71,9 @@ public:
 	void create_from_sizes(int base_size, int full_size) {
 		for_all_chunks(recycle_func, callbacks_context);
 
-		_grids.clear();
+        _grids.clear();
 		_tree.clear_children();
+        _tree.clear();
 
 		_base_size = base_size;
 
@@ -87,7 +88,7 @@ public:
 		_grids.resize(po + 1);
 	}
 
-	inline int get_lod_count() {
+    inline int get_lod_count() {
 		return _max_depth;
 	}
 
@@ -227,7 +228,7 @@ private:
 		ERR_FAIL_COND(lod < 0);
 		if (node.has_children()) {
 			for (int i = 0; i < 4; ++i) {
-				Node *child = node.children[i];
+                Node *child = node.children[i];
 				make_chunks_recursively(*child, lod - 1, callbacks_context);
 			}
 		} else {

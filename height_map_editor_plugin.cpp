@@ -12,42 +12,12 @@ HeightMapEditorPlugin::HeightMapEditorPlugin(EditorNode *p_editor) {
 	_editor = p_editor;
 	_mouse_pressed = false;
 
-	_brush.set_radius(5);
+    _brush.set_radius(5);
 
 	_brush_panel = memnew(HeightMapBrushPanel);
 	add_control_to_container(CONTAINER_SPATIAL_EDITOR_BOTTOM, _brush_panel);
 	_brush_panel->hide();
 
-	_toolbar = memnew(HBoxContainer);
-	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, _toolbar);
-	_toolbar->hide();
-
-	// TODO Need proper icons, these are borrowed from existing ones
-	Ref<Texture> mode_icons[HeightMapBrush::MODE_COUNT];
-	mode_icons[HeightMapBrush::MODE_ADD] = get_icon("AnimSet");
-	mode_icons[HeightMapBrush::MODE_SUBTRACT] = get_icon("AnimGet");
-	mode_icons[HeightMapBrush::MODE_SMOOTH] = get_icon("SphereShape");
-	mode_icons[HeightMapBrush::MODE_FLATTEN] = get_icon("HSize");
-	mode_icons[HeightMapBrush::MODE_TEXTURE] = get_icon("ImmediateGeometry");
-
-	String mode_tooltip[HeightMapBrush::MODE_COUNT];
-	mode_tooltip[HeightMapBrush::MODE_ADD] = TTR("Add");
-	mode_tooltip[HeightMapBrush::MODE_SUBTRACT] = TTR("Subtract");
-	mode_tooltip[HeightMapBrush::MODE_SMOOTH] = TTR("Smooth");
-	mode_tooltip[HeightMapBrush::MODE_FLATTEN] = TTR("Flatten");
-	mode_tooltip[HeightMapBrush::MODE_TEXTURE] = TTR("Texture paint");
-
-	ButtonArray *mode_selector = memnew(ButtonArray);
-	for (int mode = 0; mode < HeightMapBrush::MODE_COUNT; ++mode) {
-		// TODO Add localized tooltips
-		// TODO Fix ButtonArray look so that we can use icons that have a visible pressed state!
-		//mode_selector->add_icon_button(mode_icons[mode], "", mode_tooltip[mode]);
-		mode_selector->add_button(mode_tooltip[mode], mode_tooltip[mode]);
-	}
-
-	mode_selector->connect("button_selected", this, "_on_mode_selected");
-
-	_toolbar->add_child(mode_selector);
 }
 
 HeightMapEditorPlugin::~HeightMapEditorPlugin() {
@@ -58,7 +28,6 @@ bool HeightMapEditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Re
 	bool captured_event = false;
     _brush.set_radius(_brush_panel->_Brush_Size);
     _brush.set_opacity(_brush_panel->_Brush_Opacity);
-    _brush.set_flatten_height(_brush_panel->_Brush_Flatten_Height);
 	Ref<InputEventMouseButton> mb_ref = p_event;
 	Ref<InputEventMouseMotion> mm_ref = p_event;
 
@@ -120,7 +89,6 @@ bool HeightMapEditorPlugin::handles(Object *p_object) const {
 
 void HeightMapEditorPlugin::make_visible(bool p_visible) {
 	_brush_panel->set_visible(p_visible);
-	_toolbar->set_visible(p_visible);
 }
 
 void HeightMapEditorPlugin::on_mode_selected(int mode) {
@@ -130,5 +98,4 @@ void HeightMapEditorPlugin::on_mode_selected(int mode) {
 
 void HeightMapEditorPlugin::_bind_methods() {
 
-	ClassDB::bind_method(D_METHOD("_on_mode_selected", "mode"), &HeightMapEditorPlugin::on_mode_selected);
 }

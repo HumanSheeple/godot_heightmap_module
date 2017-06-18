@@ -56,7 +56,7 @@ private:
 	Ref<Material> _material;
 	bool _collision_enabled;
 	HeightMapData _data;
-	HeightMapMesher _mesher;
+    HeightMapMesher _mesher;
 	QuadTreeLod<HeightMapChunk *> _lodder;
 
 	// Pending chunk updates indexed by lod

@@ -155,12 +155,6 @@ void HeightMapBrushPanel::_on_opacity_line_edit_entered(String opacity_text){
     _Terrain_Opacity_HSlider->set_value(opacity_slider_value);
 }
 
-void HeightMapBrushPanel::_on_flatten_line_edit_entered(String flatten_text){
-    int flatten_value;
-    flatten_value = String(flatten_text).to_int();
-    _Brush_Flatten_Height = flatten_value;
-}
-
 Ref<ImageTexture> HeightMapBrushPanel::make_brush_icon(const uint8_t* p_brush_png){
     Ref<ImageTexture> texture( memnew( ImageTexture ) );
     Ref<Image> img = memnew(Image(p_brush_png));
@@ -174,7 +168,7 @@ void HeightMapBrushPanel::_bind_methods() {
     ClassDB::bind_method(D_METHOD("_on_size_line_edit_entered", "size_text"), &HeightMapBrushPanel::_on_size_line_edit_entered);
     ClassDB::bind_method(D_METHOD("_on_opacity_slider_value_changed", "opacity_value"), &HeightMapBrushPanel::_on_opacity_slider_value_changed);
     ClassDB::bind_method(D_METHOD("_on_opacity_line_edit_entered", "opacity_text"), &HeightMapBrushPanel::_on_opacity_line_edit_entered);
-    ClassDB::bind_method(D_METHOD("_on_flatten_line_edit_entered", "flatten_text"), &HeightMapBrushPanel::_on_flatten_line_edit_entered);
+
     BIND_CONSTANT(TERRAIN_BRUSH_MODE_ADD);
     BIND_CONSTANT(TERRAIN_BRUSH_MODE_SUBTRACT);
     BIND_CONSTANT(TERRAIN_BRUSH_MODE_SMOOTH);
@@ -243,8 +237,6 @@ HeightMapBrushPanel::HeightMapBrushPanel() {
     _Terrain_Flatten_Height_Line_Edit->set_size(Vector2(50,25));
     _Terrain_Flatten_Height_Line_Edit->set_editable(false);
     _Terrain_Flatten_Height_Line_Edit->set_position(Vector2(250,85));
-    _Terrain_Flatten_Height_Line_Edit->set_text("0");
-    _Terrain_Flatten_Height_Line_Edit->connect("text_changed", this, "_on_flatten_line_edit_entered");
     add_child(_Terrain_Flatten_Height_Line_Edit);
     _Terrain_Texture_ItemList = memnew(ItemList);
     _Terrain_Texture_ItemList->set_size(Vector2(448,512));

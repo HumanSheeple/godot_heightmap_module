@@ -108,25 +108,25 @@ void HeightMap::_process() {
 
 void HeightMap::update_chunk(HeightMapChunk &chunk, int lod) {
 
-	HeightMapMesher::Params mesher_params;
-	mesher_params.lod = lod;
-	mesher_params.origin = chunk.cell_origin;
-	mesher_params.size = Point2i(CHUNK_SIZE, CHUNK_SIZE);
-	mesher_params.smooth = true; // TODO Implement this option
+    HeightMapMesher::Params mesher_params;
+    mesher_params.lod = lod;
+    mesher_params.origin = chunk.cell_origin;
+    mesher_params.size = Point2i(CHUNK_SIZE, CHUNK_SIZE);
+    mesher_params.smooth = true; // TODO Implement this option
 
-	if (mesher_params.smooth) {
-		Point2i cell_size = mesher_params.size;
-		cell_size.x <<= lod;
-		cell_size.y <<= lod;
-		_data.update_normals(chunk.cell_origin, cell_size);
+    if (mesher_params.smooth) {
+        Point2i cell_size = mesher_params.size;
+        cell_size.x <<= lod;
+        cell_size.y <<= lod;
+        _data.update_normals(chunk.cell_origin, cell_size);
 	}
 
-	Ref<Mesh> mesh = _mesher.make_chunk(mesher_params, _data);
-	chunk.set_mesh(mesh);
+    Ref<Mesh> mesh = _mesher.make_chunk(mesher_params, _data);
+    chunk.set_mesh(mesh);
 
-	if (get_tree()->is_editor_hint() == false) {
-		// TODO Generate collider
-	}
+    if (get_tree()->is_editor_hint() == false) {
+        // TODO Generate collider
+    }
 }
 
 HeightMapChunk *HeightMap::_make_chunk_cb(Point2i origin, int lod) {

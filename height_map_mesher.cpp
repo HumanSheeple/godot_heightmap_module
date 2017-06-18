@@ -11,6 +11,7 @@ void copy_to(PoolVector<T> &to, Vector<T> &from) {
 	for (int i = 0; i < from.size(); ++i) {
 		w[i] = from[i];
 	}
+    from.clear();
 }
 
 Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) {
@@ -91,9 +92,13 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
 	arrays[Mesh::ARRAY_NORMAL] = pool_normals;
 	arrays[Mesh::ARRAY_COLOR] = pool_colors;
 	arrays[Mesh::ARRAY_INDEX] = pool_indices;
-
-    Ref<ArrayMesh> mesh_ref(memnew(ArrayMesh));
-    mesh_ref->add_surface_from_arrays(ArrayMesh::PRIMITIVE_TRIANGLES, arrays);
-
+    //Ref<ArrayMesh> mesh_ref(memnew(ArrayMesh));
+    Ref<ArrayMesh> mesh_ref;
+    mesh_ref->add_surface_from_arrays(Mesh::PRIMITIVE_TRIANGLES, arrays);
+    _output_vertices.clear();
+    _output_normals.clear();
+    _output_colors.clear();
+    _output_indices.clear();
+    arrays.clear();
 	return mesh_ref;
 }
