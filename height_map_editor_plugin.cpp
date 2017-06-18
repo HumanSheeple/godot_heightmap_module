@@ -1,6 +1,5 @@
 #include <core/os/input.h>
 #include <scene/3d/camera.h>
-#include <scene/gui/button_array.h>
 
 #include "height_map_editor_plugin.h"
 
@@ -12,11 +11,21 @@ HeightMapEditorPlugin::HeightMapEditorPlugin(EditorNode *p_editor) {
 	_editor = p_editor;
 	_mouse_pressed = false;
 
-    _brush.set_radius(5);
+	_brush.set_radius(5);
 
 	_brush_panel = memnew(HeightMapBrushPanel);
+	_brush_panel->connect(HeightMapBrushPanel::PARAM_CHANGED, this, "_on_brush_param_changed");
+	_brush_panel->init_params(
+			_brush.get_radius(),
+			_brush.get_opacity(),
+            _brush.get_flatten_height(),
+            _brush.get_mode());
 	add_control_to_container(CONTAINER_SPATIAL_EDITOR_BOTTOM, _brush_panel);
 	_brush_panel->hide();
+
+	_toolbar = memnew(HBoxContainer);
+	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, _toolbar);
+	_toolbar->hide();
 
 }
 
@@ -26,8 +35,7 @@ HeightMapEditorPlugin::~HeightMapEditorPlugin() {
 bool HeightMapEditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Ref<InputEvent> &p_event) {
 
 	bool captured_event = false;
-    _brush.set_radius(_brush_panel->_Brush_Size);
-    _brush.set_opacity(_brush_panel->_Brush_Opacity);
+
 	Ref<InputEventMouseButton> mb_ref = p_event;
 	Ref<InputEventMouseMotion> mm_ref = p_event;
 
@@ -52,12 +60,12 @@ bool HeightMapEditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Re
 		InputEventMouseMotion &mm = **mm_ref;
 		Input &input = *Input::get_singleton();
 
-        if (_brush_panel->get_mode() == HeightMapBrushPanel::TERRAIN_BRUSH_MODE_ADD && input.is_mouse_button_pressed(BUTTON_RIGHT)) {
-            paint(*p_camera, mm.get_position(), HeightMapBrushPanel::TERRAIN_BRUSH_MODE_SUBTRACT);
+		if (_brush.get_mode() == HeightMapBrush::MODE_ADD && input.is_mouse_button_pressed(BUTTON_RIGHT)) {
+			paint(*p_camera, mm.get_position(), HeightMapBrush::MODE_SUBTRACT);
 			captured_event = true;
 
 		} else if (input.is_mouse_button_pressed(BUTTON_LEFT)) {
-            paint(*p_camera, mm.get_position());
+			paint(*p_camera, mm.get_position());
 			captured_event = true;
 		}
 	}
@@ -75,7 +83,7 @@ void HeightMapEditorPlugin::paint(Camera &camera, Vector2 screen_pos, int overri
 
 	Point2i hit_pos_in_cells;
 	if (height_map.cell_raycast(origin, dir, hit_pos_in_cells)) {
-        _brush.paint_world_pos(height_map, hit_pos_in_cells, _brush_panel->get_mode());
+		_brush.paint(height_map, hit_pos_in_cells, override_mode);
 	}
 }
 
@@ -89,13 +97,117 @@ bool HeightMapEditorPlugin::handles(Object *p_object) const {
 
 void HeightMapEditorPlugin::make_visible(bool p_visible) {
 	_brush_panel->set_visible(p_visible);
+	_toolbar->set_visible(p_visible);
 }
 
-void HeightMapEditorPlugin::on_mode_selected(int mode) {
-	ERR_FAIL_COND(mode < 0 || mode >= HeightMapBrush::MODE_COUNT);
-	_brush.set_mode((HeightMapBrush::Mode)mode);
+
+void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
+
+	switch (param) {
+		case HeightMapBrushPanel::BRUSH_SIZE:
+			_brush.set_radius(value);
+			break;
+
+		case HeightMapBrushPanel::BRUSH_OPACITY:
+			_brush.set_opacity(value);
+			break;
+
+		case HeightMapBrushPanel::BRUSH_HEIGHT:
+			_brush.set_flatten_height(value);
+			break;
+
+        case HeightMapBrushPanel::BRUSH_MODE_CHANGE:
+            int i;
+            i = int(value);
+            switch (i) {
+                case 0:
+                    _brush.set_mode(HeightMapBrush::MODE_ADD);
+                    break;
+                case 1:
+                    _brush.set_mode(HeightMapBrush::MODE_SUBTRACT);
+                    break;
+                case 2:
+                    _brush.set_mode(HeightMapBrush::MODE_SMOOTH);
+                    break;
+                case 3:
+                    _brush.set_mode(HeightMapBrush::MODE_FLATTEN);
+                    break;
+                case 4:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,0,0,0));
+                    break;
+                case 5:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,0,0,0));
+                    break;
+                case 6:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,1,0,0));
+                    break;
+                case 7:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,0,1,0));
+                    break;
+                case 8:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,0,0,1));
+                    break;
+                case 9:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,1,0,0));
+                    break;
+                case 10:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,0,1,0));
+                    break;
+                case 11:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,0,0,1));
+                    break;
+                case 12:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,1,1,0));
+                    break;
+                case 13:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,1,0,1));
+                    break;
+                case 14:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,0,1,1));
+                    break;
+                case 15:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,1,1,0));
+                    break;
+                case 16:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,1,0,1));
+                    break;
+                case 17:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,0,1,1));
+                    break;
+                case 18:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(0,1,1,1));
+                    break;
+                case 19:
+                    _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
+                    _brush.set_color(Color(1,1,1,1));
+                    break;
+            }
+
+
+            break;
+
+		default:
+			ERR_PRINT("Unknown parameter");
+			break;
+	}
 }
 
 void HeightMapEditorPlugin::_bind_methods() {
 
+	ClassDB::bind_method(D_METHOD("_on_brush_param_changed", "value", "param"), &HeightMapEditorPlugin::on_brush_param_changed);
 }

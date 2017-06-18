@@ -3,22 +3,23 @@
 
 #define DEFAULT_RESOLUTION 256
 
+// Chunk actions that don't need private access to HeightMap
+static void s_set_material_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
+static void s_delete_chunk_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
+static void s_enter_world_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
+static void s_exit_world_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
+static void s_transform_changed_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
+static void s_visibility_changed_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
+
 HeightMap::HeightMap() {
+	set_notify_transform(true);
+
 	_collision_enabled = true;
 
 	_lodder.make_func = s_make_chunk_cb;
 	_lodder.recycle_func = s_recycle_chunk_cb;
 
-	// TODO TEST, WONT REMAIN HERE
 	set_resolution(DEFAULT_RESOLUTION);
-	Point2i size = _data.size();
-	Point2i pos;
-	for (pos.y = 0; pos.y < size.y; ++pos.y) {
-		for (pos.x = 0; pos.x < size.x; ++pos.x) {
-			float h = 2.0 * (Math::cos(pos.x * 0.2) + Math::sin(pos.y * 0.2));
-			_data.heights.set(pos, h);
-		}
-	}
 
 	_data.update_all_normals();
 
@@ -31,8 +32,10 @@ HeightMap::~HeightMap() {
 }
 
 void HeightMap::set_material(Ref<Material> p_material) {
-	_material = p_material;
-	// TODO Update chunks
+	if (_material != p_material) {
+		_material = p_material;
+		_lodder.for_all_chunks(s_set_material_cb, this);
+	}
 }
 
 void HeightMap::set_collision_enabled(bool enabled) {
@@ -48,7 +51,7 @@ void HeightMap::set_resolution(int p_res) {
 	// Power of two is important for LOD.
 	// Also, grid data is off by one,
 	// because for an even number of quads you need an odd number of vertices
-	p_res = nearest_power_of_2(p_res) + 1;
+	p_res = nearest_power_of_2(p_res - 1) + 1;
 
 	if (p_res != get_resolution()) {
 		_data.resize(p_res);
@@ -60,12 +63,51 @@ int HeightMap::get_resolution() const {
 	return _data.size().x;
 }
 
+void HeightMap::set_lod_scale(float lod_scale) {
+	_lodder.set_split_scale(lod_scale);
+}
+
+float HeightMap::get_lod_scale() const {
+	return _lodder.get_split_scale();
+}
+
 void HeightMap::_notification(int p_what) {
 	switch (p_what) {
 
 		case NOTIFICATION_ENTER_TREE:
 			set_process(true);
 			break;
+
+		case NOTIFICATION_ENTER_WORLD: {
+			Ref<World> world = get_world();
+			_lodder.for_all_chunks(s_enter_world_cb, *world);
+		} break;
+
+		case NOTIFICATION_EXIT_WORLD:
+			_lodder.for_all_chunks(s_exit_world_cb, NULL);
+			break;
+
+		case NOTIFICATION_TRANSFORM_CHANGED: {
+			Transform world_transform = get_global_transform();
+			_lodder.for_all_chunks(s_transform_changed_cb, &world_transform);
+		} break;
+
+		case NOTIFICATION_VISIBILITY_CHANGED: {
+			bool visible = is_visible();
+			_lodder.for_all_chunks(s_visibility_changed_cb, &visible);
+		} break;
+
+		// TODO TEST, WONT REMAIN HERE
+		case NOTIFICATION_READY: {
+			Point2i size = _data.size();
+			Point2i pos;
+			for (pos.y = 0; pos.y < size.y; ++pos.y) {
+				for (pos.x = 0; pos.x < size.x; ++pos.x) {
+					float h = 2.0 * (Math::cos(pos.x * 0.2) + Math::sin(pos.y * 0.2));
+					_data.heights.set(pos, h);
+				}
+			}
+		} break;
 
 		case NOTIFICATION_PROCESS:
 			_process();
@@ -108,32 +150,42 @@ void HeightMap::_process() {
 
 void HeightMap::update_chunk(HeightMapChunk &chunk, int lod) {
 
-    HeightMapMesher::Params mesher_params;
-    mesher_params.lod = lod;
-    mesher_params.origin = chunk.cell_origin;
-    mesher_params.size = Point2i(CHUNK_SIZE, CHUNK_SIZE);
-    mesher_params.smooth = true; // TODO Implement this option
+	HeightMapMesher::Params mesher_params;
+	mesher_params.lod = lod;
+	mesher_params.origin = chunk.cell_origin;
+	mesher_params.size = Point2i(CHUNK_SIZE, CHUNK_SIZE);
+	mesher_params.smooth = true; // TODO Implement this option
 
-    if (mesher_params.smooth) {
-        Point2i cell_size = mesher_params.size;
-        cell_size.x <<= lod;
-        cell_size.y <<= lod;
-        _data.update_normals(chunk.cell_origin, cell_size);
+	if (mesher_params.smooth) {
+		Point2i cell_size = mesher_params.size;
+		cell_size.x <<= lod;
+		cell_size.y <<= lod;
+
+		// Padding is needed because normals are calculated using neighboring,
+		// so a change in height X also requires normals in X-1 and X+1 to be updated
+		Point2i pad(1, 1);
+
+		_data.update_normals(chunk.cell_origin - pad, cell_size + 2 * pad);
 	}
+    // test script to test to see if the seams work even when upscaled
+    mesher_params.seams[0] = 1;
+    mesher_params.seams[1] = 1;
+    mesher_params.seams[2] = 1;
+    mesher_params.seams[3] = 1;
 
-    Ref<Mesh> mesh = _mesher.make_chunk(mesher_params, _data);
-    chunk.set_mesh(mesh);
 
-    if (get_tree()->is_editor_hint() == false) {
-        // TODO Generate collider
-    }
+	Ref<Mesh> mesh = _mesher.make_chunk(mesher_params, _data);
+	chunk.set_mesh(mesh);
+
+	if (get_tree()->is_editor_hint() == false) {
+		// TODO Generate collider
+	}
 }
 
 HeightMapChunk *HeightMap::_make_chunk_cb(Point2i origin, int lod) {
 	int lod_size = _lodder.get_lod_size(lod);
 	Point2i origin_in_cells = origin * CHUNK_SIZE * lod_size;
-	HeightMapChunk *chunk = memnew(HeightMapChunk(this));
-	chunk->create(origin_in_cells, _material);
+	HeightMapChunk *chunk = memnew(HeightMapChunk(this, origin_in_cells, _material));
 
 	set_chunk_dirty(origin, lod);
 
@@ -160,7 +212,6 @@ void HeightMap::set_area_dirty(Point2i origin_in_cells, Point2i size_in_cells) {
 }
 
 void HeightMap::_recycle_chunk_cb(HeightMapChunk *chunk) {
-	chunk->clear();
 	memdelete(chunk);
 }
 
@@ -213,30 +264,54 @@ void HeightMap::_bind_methods() {
 	ClassDB::bind_method(D_METHOD("set_resolution", "resolution"), &HeightMap::set_resolution);
 	ClassDB::bind_method(D_METHOD("get_resolution"), &HeightMap::get_resolution);
 
-	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material"), "set_material", "get_material");
+	ClassDB::bind_method(D_METHOD("set_lod_scale", "scale"), &HeightMap::set_lod_scale);
+	ClassDB::bind_method(D_METHOD("get_lod_scale"), &HeightMap::get_lod_scale);
+
+	ADD_PROPERTY(PropertyInfo(Variant::OBJECT, "material", PROPERTY_HINT_RESOURCE_TYPE, "Material"), "set_material", "get_material");
 	ADD_PROPERTY(PropertyInfo(Variant::BOOL, "collision_enabled"), "set_collision_enabled", "is_collision_enabled");
 	ADD_PROPERTY(PropertyInfo(Variant::INT, "resolution"), "set_resolution", "get_resolution");
+	ADD_PROPERTY(PropertyInfo(Variant::REAL, "lod_scale"), "set_lod_scale", "get_lod_scale");
 }
 
-// static
 HeightMapChunk *HeightMap::s_make_chunk_cb(void *context, Point2i origin, int lod) {
 	HeightMap *self = reinterpret_cast<HeightMap *>(context);
 	return self->_make_chunk_cb(origin, lod);
 }
 
-// static
 void HeightMap::s_recycle_chunk_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
 	HeightMap *self = reinterpret_cast<HeightMap *>(context);
 	self->_recycle_chunk_cb(chunk);
 }
 
-// static
 void HeightMap::s_set_chunk_dirty_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
 	HeightMap *self = reinterpret_cast<HeightMap *>(context);
 	self->set_chunk_dirty(origin, lod);
 }
 
-// static
-void HeightMap::s_delete_chunk_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
+void s_set_material_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
+	HeightMap *self = reinterpret_cast<HeightMap *>(context);
+	chunk->set_material(self->get_material());
+}
+
+void s_delete_chunk_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
 	memdelete(chunk);
+}
+
+void s_enter_world_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
+	World *world = reinterpret_cast<World *>(context);
+	chunk->enter_world(*world);
+}
+
+void s_exit_world_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
+	chunk->exit_world();
+}
+
+void s_transform_changed_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
+	Transform *transform = reinterpret_cast<Transform *>(context);
+	chunk->parent_transform_changed(*transform);
+}
+
+void s_visibility_changed_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod) {
+	bool *visible = reinterpret_cast<bool *>(context);
+	chunk->set_visible(*visible);
 }
