@@ -246,6 +246,456 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
             _output_indices.push_back(i-(2*(params.size.x+1)));
             _output_indices.push_back(i-params.size.x);
         }
+        //draw grass
+        i = (params.size.x+1)*(params.size.y+1);
+        float decel_offset_x = -0.5;
+        float decel_offset_y = -0.5;
+        float height_offset = 0.1;
+        for (pos.y = params.origin.y; pos.y <= max.y; pos.y += stride) {
+            for (pos.x = params.origin.x; pos.x <= max.x; pos.x += stride) {
+                int loc = data.heights.index(pos);
+                if ((data.colors[loc].g > 0.8)&&(data.colors[loc].r < 0.2)&&(data.colors[loc].b < 0.2)&&(params.lod==0)) {
+                    for (decel_offset_y = -0.5; decel_offset_y < 0.5; decel_offset_y+=0.1){
+                    for (decel_offset_x = -0.5; decel_offset_x < 0.5; decel_offset_x+=0.1){
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - 0.002 + decel_offset_x),
+                            float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)-0.1),
+                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                    _output_colors.push_back(Color(0,0.4,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                            float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)-0.1),
+                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                    _output_colors.push_back(Color(0,0.4,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                            float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)-0.1),
+                            float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
+                    _output_colors.push_back(Color(0,0.4,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    height_offset = 0.06 + (0.07 * ((float)random() / RAND_MAX));
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - 0.002 + decel_offset_x),
+                            float(data.heights[loc]+height_offset+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)),
+                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                    _output_colors.push_back(Color(0,0.4,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                            float(data.heights[loc]+height_offset+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)),
+                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                    _output_colors.push_back(Color(0,0.4,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                            float(data.heights[loc]+height_offset+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)),
+                            float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
+                    _output_colors.push_back(Color(0,0.4,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+
+
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+4);
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i+4);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+3);
+
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i+5);
+                    _output_indices.push_back(i+4);
+                    _output_indices.push_back(i+5);
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i+2);
+
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+5);
+                    _output_indices.push_back(i+3);
+                    _output_indices.push_back(i+2);
+                    _output_indices.push_back(i+5);
+                    _output_indices.push_back(i);
+
+                    _output_indices.push_back(i+3);
+                    _output_indices.push_back(i+4);
+                    _output_indices.push_back(i+5);
+
+                    i+=6;
+                    // daisies
+                    if ((height_offset>0.12)&&(data.colors[loc].a>0.8)) {
+                        //bottom of daisy head
+                        height_offset += (0.05 * ((float)random() / RAND_MAX));
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.002 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        //first petal underside
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y - 0.024 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.054 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.003),
+                                float(pos.y - params.origin.y + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y + 0.018 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+
+                        //yellow core
+
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.002 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,0,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,0,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,0,1));
+                        _output_normals.push_back(data.normals[loc]);
+
+                        // first petal topside
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y - 0.024 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.054 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.002),
+                                float(pos.y - params.origin.y + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y + 0.018 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+
+                        // second petal underside
+
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.035 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.043 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.003),
+                                float(pos.y - params.origin.y +0.028 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y +0.03 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+
+                        // second petal topside
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.035 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.043 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.002),
+                                float(pos.y - params.origin.y +0.028 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y +0.03+ decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+
+                        // third petal underside
+
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.02 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y - 0.035 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.003),
+                                float(pos.y - params.origin.y - 0.052 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.024 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
+                                float(pos.y - params.origin.y - 0.03 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+
+                        // third petal topside
+
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x + 0.02 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y - 0.035 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.002),
+                                float(pos.y - params.origin.y - 0.052 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+                        _output_vertices.push_back(Vector3(
+                                float(pos.x - params.origin.x - 0.024 + decel_offset_x),
+                                float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
+                                float(pos.y - params.origin.y - 0.03 + decel_offset_y)));
+                        _output_colors.push_back(Color(1,1,1,1));
+                        _output_normals.push_back(data.normals[loc]);
+
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i-3);
+                        _output_indices.push_back(i-2);
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i-3);
+                        _output_indices.push_back(i-1);
+
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i-2);
+                        _output_indices.push_back(i+1);
+
+                        _output_indices.push_back(i+1);
+                        _output_indices.push_back(i-2);
+                        _output_indices.push_back(i+2);
+
+                        _output_indices.push_back(i+2);
+                        _output_indices.push_back(i-3);
+                        _output_indices.push_back(i-2);
+
+                        _output_indices.push_back(i+2);
+                        _output_indices.push_back(i-1);
+                        _output_indices.push_back(i-3);
+
+                        _output_indices.push_back(i+3);
+                        _output_indices.push_back(i+1);
+                        _output_indices.push_back(i+2);
+
+                        _output_indices.push_back(i+3);
+                        _output_indices.push_back(i+2);
+                        _output_indices.push_back(i+5);
+
+                        _output_indices.push_back(i+3);
+                        _output_indices.push_back(i+5);
+                        _output_indices.push_back(i+4);
+
+                        _output_indices.push_back(i+3);
+                        _output_indices.push_back(i+7);
+                        _output_indices.push_back(i+1);
+
+                        _output_indices.push_back(i+7);
+                        _output_indices.push_back(i+3);
+                        _output_indices.push_back(i+9);
+
+                        _output_indices.push_back(i+10);
+                        _output_indices.push_back(i+9);
+                        _output_indices.push_back(i+3);
+
+                        _output_indices.push_back(i+9);
+                        _output_indices.push_back(i+4);
+                        _output_indices.push_back(i+10);
+
+                        _output_indices.push_back(i+11);
+                        _output_indices.push_back(i+10);
+                        _output_indices.push_back(i+4);
+
+                        _output_indices.push_back(i+11);
+                        _output_indices.push_back(i+4);
+                        _output_indices.push_back(i+5);
+
+                        _output_indices.push_back(i+8);
+                        _output_indices.push_back(i+5);
+                        _output_indices.push_back(i+2);
+
+                        _output_indices.push_back(i+5);
+                        _output_indices.push_back(i+8);
+                        _output_indices.push_back(i+11);
+
+                        _output_indices.push_back(i+8);
+                        _output_indices.push_back(i+9);
+                        _output_indices.push_back(i+11);
+
+                        _output_indices.push_back(i+9);
+                        _output_indices.push_back(i+8);
+                        _output_indices.push_back(i+7);
+
+                        _output_indices.push_back(i+11);
+                        _output_indices.push_back(i+9);
+                        _output_indices.push_back(i+10);
+
+                        _output_indices.push_back(i+8);
+                        _output_indices.push_back(i+6);
+                        _output_indices.push_back(i+7);
+
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i+15);
+                        _output_indices.push_back(i+12);
+
+                        _output_indices.push_back(i+15);
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i+6);
+
+                        _output_indices.push_back(i+15);
+                        _output_indices.push_back(i+13);
+                        _output_indices.push_back(i+12);
+
+                        _output_indices.push_back(i+13);
+                        _output_indices.push_back(i+15);
+                        _output_indices.push_back(i+16);
+
+                        _output_indices.push_back(i+14);
+                        _output_indices.push_back(i+16);
+                        _output_indices.push_back(i+17);
+
+                        _output_indices.push_back(i+16);
+                        _output_indices.push_back(i+14);
+                        _output_indices.push_back(i+13);
+
+                        _output_indices.push_back(i+2);
+                        _output_indices.push_back(i+17);
+                        _output_indices.push_back(i+8);
+
+                        _output_indices.push_back(i+17);
+                        _output_indices.push_back(i+2);
+                        _output_indices.push_back(i+14);
+
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i+14);
+                        _output_indices.push_back(i+2);
+
+                        _output_indices.push_back(i+14);
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i+12);
+
+                        _output_indices.push_back(i+14);
+                        _output_indices.push_back(i+12);
+                        _output_indices.push_back(i+13);
+
+                        _output_indices.push_back(i+8);
+                        _output_indices.push_back(i+15);
+                        _output_indices.push_back(i+6);
+
+                        _output_indices.push_back(i+15);
+                        _output_indices.push_back(i+8);
+                        _output_indices.push_back(i+17);
+
+                        _output_indices.push_back(i+15);
+                        _output_indices.push_back(i+17);
+                        _output_indices.push_back(i+16);
+
+                        _output_indices.push_back(i+18);
+                        _output_indices.push_back(i+1);
+                        _output_indices.push_back(i+7);
+
+                        _output_indices.push_back(i+21);
+                        _output_indices.push_back(i+7);
+                        _output_indices.push_back(i+18);
+
+                        _output_indices.push_back(i+18);
+                        _output_indices.push_back(i+19);
+                        _output_indices.push_back(i+21);
+
+                        _output_indices.push_back(i+21);
+                        _output_indices.push_back(i+22);
+                        _output_indices.push_back(i+19);
+
+                        _output_indices.push_back(i+23);
+                        _output_indices.push_back(i+22);
+                        _output_indices.push_back(i+19);
+
+                        _output_indices.push_back(i+22);
+                        _output_indices.push_back(i+20);
+                        _output_indices.push_back(i+23);
+
+                        _output_indices.push_back(i+23);
+                        _output_indices.push_back(i+6);
+                        _output_indices.push_back(i);
+
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i+23);
+                        _output_indices.push_back(i+20);
+
+                        _output_indices.push_back(i+1);
+                        _output_indices.push_back(i);
+                        _output_indices.push_back(i+20);
+
+                        _output_indices.push_back(i+20);
+                        _output_indices.push_back(i+1);
+                        _output_indices.push_back(i+18);
+
+                        _output_indices.push_back(i+18);
+                        _output_indices.push_back(i+19);
+                        _output_indices.push_back(i+20);
+
+                        _output_indices.push_back(i+6);
+                        _output_indices.push_back(i+7);
+                        _output_indices.push_back(i+23);
+
+                        _output_indices.push_back(i+7);
+                        _output_indices.push_back(i+23);
+                        _output_indices.push_back(i+21);
+
+                        _output_indices.push_back(i+23);
+                        _output_indices.push_back(i+22);
+                        _output_indices.push_back(i+21);
+
+
+                        i+=24;
+
+                    }
+                    }
+                    }
+
+                }
+              }
+        }
+
+
+
     PoolVector<Vector3> pool_vertices;
     PoolVector<Vector3> pool_normals;
     PoolVector<Color> pool_colors;

@@ -134,7 +134,7 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 4:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(0,0,0,0));
+                    _brush.set_color(Color(0,0,0,1));
                     break;
                 case 5:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
@@ -142,7 +142,7 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 6:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(0,1,0,0));
+                    _brush.set_color(Color(1,0,0,1));
                     break;
                 case 7:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
@@ -150,7 +150,7 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 8:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(0,0,0,1));
+                    _brush.set_color(Color(0,1,0,0));
                     break;
                 case 9:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
@@ -162,7 +162,7 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 11:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,0,0,1));
+                    _brush.set_color(Color(0,1,0,1));
                     break;
                 case 12:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
@@ -170,7 +170,7 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 13:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(0,1,0,1));
+                    _brush.set_color(Color(0,0,0,0));
                     break;
                 case 14:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);

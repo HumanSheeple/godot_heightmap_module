@@ -1,5 +1,10 @@
-Dear Zylann,
- I have done as you have asked and I have re-written the mesher so that all the vertexes are made in one go and the indices are the only thing that changes. I must admit I have noticed a marginal improvement in performance already writing it this way. I hope you appreciate all the time and effort I have put into this project.
- Kind Regards
+Heightmap Terrain for Godot Engine 3.0
+========================================
 
- HumanSheeple
+C++ module for creating heightmaps.
+
+Install the contents of the repo in a folder under "modules/", named "hterrain".
+
+IMPORTANT: if you clone the repo, Git will create the folder as the repo name, "godot_heightmap_terrain". But because Godot SCons scripts consider the folder name as the module's name, it will generate wrong function calls, so you must rename the folder "hterrain".
+
+
