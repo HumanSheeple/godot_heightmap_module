@@ -907,8 +907,8 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
                 //draw tree
                 if ((data.colors[loc].g < 0.2)&&(data.colors[loc].r < 0.2)&&(data.colors[loc].b < 0.2)&&(data.colors[loc].a < 0.2)&&(params.lod==0)) {
                     if ((((pos.x-params.origin.x)==0)&&((pos.y-params.origin.y)==0))||(((pos.x-params.origin.x)==4)&&((pos.y-params.origin.y)==0))||(((pos.x-params.origin.x)==8)&&((pos.y-params.origin.y)==0))||(((pos.x-params.origin.x)==12)&&((pos.y-params.origin.y)==0))||(((pos.x-params.origin.x)==0)&&((pos.y-params.origin.y)==4))||(((pos.x-params.origin.x)==4)&&((pos.y-params.origin.y)==4))||(((pos.x-params.origin.x)==8)&&((pos.y-params.origin.y)==4))||(((pos.x-params.origin.x)==12)&&((pos.y-params.origin.y)==4))||(((pos.x-params.origin.x)==0)&&((pos.y-params.origin.y)==8))||(((pos.x-params.origin.x)==4)&&((pos.y-params.origin.y)==8))||(((pos.x-params.origin.x)==8)&&((pos.y-params.origin.y)==8))||(((pos.x-params.origin.x)==12)&&((pos.y-params.origin.y)==8))||(((pos.x-params.origin.x)==0)&&((pos.y-params.origin.y)==12))||(((pos.x-params.origin.x)==4)&&((pos.y-params.origin.y)==12))||(((pos.x-params.origin.x)==8)&&((pos.y-params.origin.y)==12))||(((pos.x-params.origin.x)==12)&&((pos.y-params.origin.y)==12))) {
-                    decel_offset_y = -0.4 + (0.8 * ((float)random() / RAND_MAX));
-                    decel_offset_x = -0.4 + (0.8 * ((float)random() / RAND_MAX));
+                    decel_offset_y = -1.2 + (2.41 * ((float)random() / RAND_MAX));
+                    decel_offset_x = -1.2 + (2.41 * ((float)random() / RAND_MAX));
                     decel_scale = 0.2 + (0.91 * ((float)random() / RAND_MAX));
                     //0
                     _output_vertices.push_back(Vector3(
@@ -1135,8 +1135,9 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
                             float(pos.y - params.origin.y - (0.184*decel_scale) + decel_offset_y)));
                     _output_colors.push_back(Color(0.3,0.3,0.05,1));
                     _output_normals.push_back(data.normals[loc]);
-                    decel_offset_y+= -0.08 + (0.161 * ((float)random() / RAND_MAX));
-                    decel_offset_x+= -0.08 + (0.161 * ((float)random() / RAND_MAX));
+                    decel_offset_y+= -0.32 + (0.641 * ((float)random() / RAND_MAX));
+                    decel_offset_x+= -0.32 + (0.641 * ((float)random() / RAND_MAX));
+                    if (decel_scale < 0.4) { height_offset+=1.3; }
                     height_offset+= 2.4 + (decel_scale*(2.4 * ((float)random() / RAND_MAX)));
                     //32
                     _output_vertices.push_back(Vector3(
@@ -1245,11 +1246,131 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
                     _output_normals.push_back(data.normals[loc]);
                     //47
                     _output_vertices.push_back(Vector3(
-                            float(pos.x - params.origin.x - (0.272*decel_scale) + decel_offset_x),
+                            float(pos.x - params.origin.x - (0.657*decel_scale) + decel_offset_x),
                             float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset),
-                            float(pos.y - params.origin.y - (0.657*decel_scale) + decel_offset_y)));
+                            float(pos.y - params.origin.y - (0.272*decel_scale) + decel_offset_y)));
                     _output_colors.push_back(Color(1,1,0.6,1));
                     _output_normals.push_back(data.normals[loc]);
+                    //48 bridge between first branching
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - (0.503*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.629*decel_scale)),
+                            float(pos.y - params.origin.y + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //49
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - (0.272*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.814*decel_scale)),
+                            float(pos.y - params.origin.y + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //50
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.88*decel_scale)),
+                            float(pos.y - params.origin.y + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //51
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (0.272*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.814*decel_scale)),
+                            float(pos.y - params.origin.y + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //52
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (0.503*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.629*decel_scale)),
+                            float(pos.y - params.origin.y + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //53 First Branch First Node
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - (0.04*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.627*decel_scale)),
+                            float(pos.y - params.origin.y + (1.78*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //54
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (0.229*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.685*decel_scale)),
+                            float(pos.y - params.origin.y + (1.743*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //55
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (0.422*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.844*decel_scale)),
+                            float(pos.y - params.origin.y + (1.632*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //56
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (0.493*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.06*decel_scale)),
+                            float(pos.y - params.origin.y + (1.48*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //57
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (0.422*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.276*decel_scale)),
+                            float(pos.y - params.origin.y + (1.33*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //58
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (0.223*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.435*decel_scale)),
+                            float(pos.y - params.origin.y + (1.218*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //59
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - (0.035*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.493*decel_scale)),
+                            float(pos.y - params.origin.y + (1.178*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //60
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (-0.299*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.435*decel_scale)),
+                            float(pos.y - params.origin.y + (1.218*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //61
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - (0.493*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.276*decel_scale)),
+                            float(pos.y - params.origin.y + (1.329*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //62
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (-0.563*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.06*decel_scale)),
+                            float(pos.y - params.origin.y + (1.481*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //63
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x - (0.493*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.844*decel_scale)),
+                            float(pos.y - params.origin.y + (1.632*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(1,1,0.6,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    //64
+                    _output_vertices.push_back(Vector3(
+                            float(pos.x - params.origin.x + (-0.299*decel_scale) + decel_offset_x),
+                            float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.685*decel_scale)),
+                            float(pos.y - params.origin.y + (1.743*decel_scale) + decel_offset_y)));
+                    _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+
                     int c1 = 0;
                     int c2 = 0;
                     for (c2 = 0; c2 < 2; ++c2){
@@ -1270,7 +1391,268 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
                     _output_indices.push_back(i-15);
                     ++i;
                     }
-                    i+=16;
+                    // build joint between trunk and first branch
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+16);
+                    ++i;
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+15);
+                    ++i;
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+14);
+                    _output_indices.push_back(i+28);
+                    _output_indices.push_back(i+29);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+28);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+29);
+                    _output_indices.push_back(i+30);
+                    _output_indices.push_back(i+30);
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i);
+                    ++i;
+                    _output_indices.push_back(i+18);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+29);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+18);
+                    _output_indices.push_back(i+1);
+                    ++i;
+                    for (c2 = 0; c2 < 2; ++c2){
+                    _output_indices.push_back(i+18);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+17);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+18);
+                    _output_indices.push_back(i+1);
+                    ++i;
+                    }
+                    _output_indices.push_back(i+17);
+                    _output_indices.push_back(i+14);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+14);
+                    _output_indices.push_back(i+17);
+                    _output_indices.push_back(i+18);
+                    for (c2 = 0; c2 < 4; ++c2){
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+(14-c2));
+                    ++i;
+                    }
+                    i+=4;
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+2);
+                    _output_indices.push_back(i+1);
+                    ++i;
+                    _output_indices.push_back(i-15);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+1);
+                    ++i;
+                    //triangulate up the top of the first branch
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+13);
+                    _output_indices.push_back(i+14);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i+13);
+                    ++i;
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+11);
+                    _output_indices.push_back(i+12);
+                    for (c1 = 0; c1 < 4; c1+=2){
+                    _output_indices.push_back(i+11-c1);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+10-c1);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i+10-c1);
+                    ++i;
+                    }
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+6);
+                    _output_indices.push_back(i+7);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+5);
+                    _output_indices.push_back(i+6);
+                    _output_indices.push_back(i);
+                    _output_indices.push_back(i+1);
+                    _output_indices.push_back(i+5);
+
+                    i-= 9;
+
+                    float branches = -100.0 + (200 * ((float)random() / RAND_MAX));
+
+                                       // Build second branch if there is one
+                                       if (branches>0) {
+                                           //65 First Branch Second Node
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x - (0.04*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.627*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.78*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(1,1,0.6,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //66
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (0.229*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.685*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.743*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //67
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (0.422*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.844*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.632*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(1,1,0.6,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //68
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (0.493*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.06*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.48*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //69
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (0.422*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.276*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.33*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(1,1,0.6,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //70
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (0.223*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.435*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.218*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //71
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x - (0.035*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.493*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.178*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(1,1,0.6,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //72
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (-0.299*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.435*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.218*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //73
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x - (0.493*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.276*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.329*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(1,1,0.6,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //74
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (-0.563*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(1.06*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.481*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //75
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x - (0.493*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.844*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.632*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(1,1,0.6,1));
+                                           _output_normals.push_back(data.normals[loc]);
+                                           //76
+                                           _output_vertices.push_back(Vector3(
+                                                   float(pos.x - params.origin.x + (-0.299*decel_scale) + decel_offset_x),
+                                                   float(data.heights[loc]-(decel_offset_y*data.normals[loc].z)-(decel_offset_x*data.normals[loc].x)+height_offset+(0.685*decel_scale)),
+                                                   float(pos.y - params.origin.y - (1.743*decel_scale) + decel_offset_y)));
+                                           _output_colors.push_back(Color(0.3,0.3,0.05,1));
+                                           _output_normals.push_back(data.normals[loc]);
+
+                                           _output_indices.push_back(i);
+                                           _output_indices.push_back(i+26);
+                                           _output_indices.push_back(i+25);
+                                           _output_indices.push_back(i);
+                                           _output_indices.push_back(i+10);
+                                           _output_indices.push_back(i+26);
+                                           for (c2 = 25; c2 > 21; c2-=2) {
+                                               _output_indices.push_back(i);
+                                               _output_indices.push_back(i+c2);
+                                               _output_indices.push_back(i+(c2-1));
+                                               _output_indices.push_back(i+1);
+                                               _output_indices.push_back(i);
+                                               _output_indices.push_back(i+(c2-1));
+                                               ++i;
+                                           }
+                                           _output_indices.push_back(i);
+                                           _output_indices.push_back(i+21);
+                                           _output_indices.push_back(i+32);
+                                           _output_indices.push_back(i+1);
+                                           _output_indices.push_back(i);
+                                           _output_indices.push_back(i+32);
+                                           ++i;
+                                           _output_indices.push_back(i);
+                                           _output_indices.push_back(i+31);
+                                           _output_indices.push_back(i+30);
+                                           _output_indices.push_back(i+1);
+                                           _output_indices.push_back(i);
+                                           _output_indices.push_back(i+30);
+                                           ++i;
+                                           _output_indices.push_back(i);
+                                           _output_indices.push_back(i+29);
+                                           _output_indices.push_back(i+2);
+                                           _output_indices.push_back(i+2);
+                                           _output_indices.push_back(i+29);
+                                           _output_indices.push_back(i+28);
+                                            i+=2;
+                                            //top side of first node second branch
+                                            _output_indices.push_back(i);
+                                            _output_indices.push_back(i+26);
+                                            _output_indices.push_back(i+25);
+                                            _output_indices.push_back(i+1);
+                                            _output_indices.push_back(i);
+                                            _output_indices.push_back(i+25);
+                                            ++i;
+                                            _output_indices.push_back(i+23);
+                                            _output_indices.push_back(i);
+                                            _output_indices.push_back(i+24);
+
+                                            for (c2 = 22; c2 > 18; c2-=2) {
+                                                _output_indices.push_back(i);
+                                                _output_indices.push_back(i+(c2+1));
+                                                _output_indices.push_back(i+c2);
+                                                _output_indices.push_back(i+1);
+                                                _output_indices.push_back(i);
+                                                _output_indices.push_back(i+(c2));
+                                                ++i;
+                                            }
+                                            _output_indices.push_back(i);
+                                            _output_indices.push_back(i+19);
+                                            _output_indices.push_back(i+18);
+                                            _output_indices.push_back(i);
+                                            _output_indices.push_back(i+18);
+                                            _output_indices.push_back(i+17);
+                                            _output_indices.push_back(i+1);
+                                            _output_indices.push_back(i);
+                                            _output_indices.push_back(i+17);
+                                           i+=26;
+                                       }
+                    // Seal the gap if there is no branch
+                        if(branches<0){
+                        for (c2 = 10; c2 > 2; c2-=2) {
+                            _output_indices.push_back(i);
+                            _output_indices.push_back(i+c2);
+                            _output_indices.push_back(i+(c2-1));
+                            _output_indices.push_back(i+1);
+                            _output_indices.push_back(i);
+                            _output_indices.push_back(i+(c2-1));
+                            ++i;
+                        }
+                        i+=19;
+                        }
+
                     }
                 }
             }
