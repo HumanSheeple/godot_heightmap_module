@@ -252,57 +252,82 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
         float decel_offset_y = -0.5;
         float height_offset = 0.1;
         float decel_scale = 1.0;
+        int decel_y = 0;
+        int decel_x = 0;
+        float decel_y1 = 0;
+        float decel_x1 = 0;
+        float decel_normal_y = 0;
+        float decel_normal_x = 0;
+        float decel_offset_z = 0;
+        float grass_rand_x = 0;
+        float grass_rand_y = 0;
+
         for (pos.y = params.origin.y; pos.y <= max.y; pos.y += stride) {
+            decel_y = pos.y-params.origin.y;
             for (pos.x = params.origin.x; pos.x <= max.x; pos.x += stride) {
+                decel_x = pos.x-params.origin.x;
                 int loc = data.heights.index(pos);
                 //draw grass
                 if ((data.colors[loc].g > 0.8)&&(data.colors[loc].r < 0.2)&&(data.colors[loc].b < 0.2)&&(params.lod==0)) {
-                    for (decel_offset_y = -0.5; decel_offset_y < 0.5; decel_offset_y+=0.1){
-                    for (decel_offset_x = -0.5; decel_offset_x < 0.5; decel_offset_x+=0.1){
+                    for (decel_offset_y = -0.5; decel_offset_y < 0.5; decel_offset_y+=0.05){
+                        decel_normal_y = decel_offset_y*data.normals[loc].z;
+                        decel_y1 = decel_y + decel_offset_y;
+                    for (decel_offset_x = -0.5; decel_offset_x < 0.5; decel_offset_x+=0.05){
+                        grass_rand_x = -0.03 + (0.06 * ((float)random() / RAND_MAX));
+                        grass_rand_y = -0.03 + (0.06 * ((float)random() / RAND_MAX));
+                        decel_normal_x = decel_offset_x*data.normals[loc].x;
+                        decel_offset_z = decel_normal_y+decel_normal_x;
+                        decel_offset_z = data.heights[loc]-decel_offset_z;
+                        decel_y1 += grass_rand_y;
+                        decel_x1 = decel_x + decel_offset_x + grass_rand_x;
                     _output_vertices.push_back(Vector3(
-                            float(pos.x - params.origin.x - 0.002 + decel_offset_x),
-                            float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)-0.1),
-                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                            float(decel_x1 - 0.005),
+                            float(decel_offset_z-0.1),
+                            float(decel_y1 - 0.005)));
+                    _output_colors.push_back(Color(0,0.3,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    _output_vertices.push_back(Vector3(
+                            float(decel_x1 + 0.005),
+                            float(decel_offset_z-0.1),
+                            float(decel_y1 - 0.005)));
                     _output_colors.push_back(Color(0,0.4,0,1));
                     _output_normals.push_back(data.normals[loc]);
                     _output_vertices.push_back(Vector3(
-                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
-                            float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)-0.1),
-                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                            float(decel_x1 + 0.005),
+                            float(decel_offset_z-0.1),
+                            float(decel_y1 + 0.005)));
+                    _output_colors.push_back(Color(0.3,0.5,0.05,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    height_offset = 0.03 + (0.15 * ((float)random() / RAND_MAX));
+                    decel_offset_z+=height_offset;
+                    grass_rand_x = -0.03 + (0.06 * ((float)random() / RAND_MAX));
+                    grass_rand_y = -0.03 + (0.06 * ((float)random() / RAND_MAX));
+                    decel_y1 += grass_rand_y;
+                    decel_x1 += grass_rand_x;
+                    _output_vertices.push_back(Vector3(
+                            float(decel_x1 - 0.002),
+                            float(decel_offset_z),
+                            float(decel_y1 - 0.002)));
+                    _output_colors.push_back(Color(0,0.3,0,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    _output_vertices.push_back(Vector3(
+                            float(decel_x1 + 0.002),
+                            float(decel_offset_z),
+                            float(decel_y1 - 0.002)));
                     _output_colors.push_back(Color(0,0.4,0,1));
                     _output_normals.push_back(data.normals[loc]);
                     _output_vertices.push_back(Vector3(
-                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
-                            float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)-0.1),
-                            float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
-                    _output_colors.push_back(Color(0,0.4,0,1));
-                    _output_normals.push_back(data.normals[loc]);
-                    height_offset = 0.06 + (0.07 * ((float)random() / RAND_MAX));
-                    _output_vertices.push_back(Vector3(
-                            float(pos.x - params.origin.x - 0.002 + decel_offset_x),
-                            float(data.heights[loc]+height_offset+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)),
-                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
-                    _output_colors.push_back(Color(0,0.4,0,1));
-                    _output_normals.push_back(data.normals[loc]);
-                    _output_vertices.push_back(Vector3(
-                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
-                            float(data.heights[loc]+height_offset+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)),
-                            float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
-                    _output_colors.push_back(Color(0,0.4,0,1));
-                    _output_normals.push_back(data.normals[loc]);
-                    _output_vertices.push_back(Vector3(
-                            float(pos.x - params.origin.x + 0.002 + decel_offset_x),
-                            float(data.heights[loc]+height_offset+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)),
-                            float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
-                    _output_colors.push_back(Color(0,0.4,0,1));
+                            float(decel_x1 + 0.002),
+                            float(decel_offset_z),
+                            float(decel_y1 + 0.002)));
+                    _output_colors.push_back(Color(0.3,0.5,0.05,1));
                     _output_normals.push_back(data.normals[loc]);
 
-
-                    _output_indices.push_back(i);
                     _output_indices.push_back(i+4);
+                    _output_indices.push_back(i);
                     _output_indices.push_back(i+1);
-                    _output_indices.push_back(i+4);
                     _output_indices.push_back(i);
+                    _output_indices.push_back(i+4);
                     _output_indices.push_back(i+3);
 
                     _output_indices.push_back(i+1);
@@ -312,181 +337,201 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
                     _output_indices.push_back(i+1);
                     _output_indices.push_back(i+2);
 
-                    _output_indices.push_back(i);
                     _output_indices.push_back(i+5);
+                    _output_indices.push_back(i);
                     _output_indices.push_back(i+3);
+                    _output_indices.push_back(i+5);
                     _output_indices.push_back(i+2);
-                    _output_indices.push_back(i+5);
                     _output_indices.push_back(i);
-
-                    _output_indices.push_back(i+3);
-                    _output_indices.push_back(i+4);
-                    _output_indices.push_back(i+5);
-
                     i+=6;
+                    decel_y1 += (0.45*grass_rand_y);
+                    decel_x1 += (0.45*grass_rand_x);
+                    if (((height_offset>0.15)&&(data.colors[loc].a>0.8))!=true) {
+                    height_offset = 0.02 + (0.04 * ((float)random() / RAND_MAX));
+                    decel_offset_z+=height_offset;
+                    _output_vertices.push_back(Vector3(
+                            float(decel_x1),
+                            float(decel_offset_z),
+                            float(decel_y1)));
+                    _output_colors.push_back(Color(0.7,0.7,0.15,1));
+                    _output_normals.push_back(data.normals[loc]);
+                    _output_indices.push_back(i-3);
+                    _output_indices.push_back(i-2);
+                    _output_indices.push_back(i);
+
+                    _output_indices.push_back(i-1);
+                    _output_indices.push_back(i-3);
+                    _output_indices.push_back(i);
+
+                    _output_indices.push_back(i-2);
+                    _output_indices.push_back(i-1);
+                    _output_indices.push_back(i);
+                    ++i;
+                    }
+
                     // daisies
-                    if ((height_offset>0.12)&&(data.colors[loc].a>0.8)) {
+                    if ((height_offset>0.15)&&(data.colors[loc].a>0.8)) {
                         //bottom of daisy head
                         height_offset += (0.05 * ((float)random() / RAND_MAX));
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.002 + decel_offset_x),
+                                float(decel_x1 - 0.002),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                                float(decel_y1 - 0.002)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(decel_x1 + 0.002),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                                float(decel_y1 - 0.002)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(decel_x1 + 0.002),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
+                                float(decel_y1 + 0.002)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         //first petal underside
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(decel_x1 + 0.038),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y - 0.024 + decel_offset_y)));
+                                float(decel_y1 - 0.024)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.054 + decel_offset_x),
+                                float(decel_x1 + 0.054),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.003),
-                                float(pos.y - params.origin.y + decel_offset_y)));
+                                float(decel_y1)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(decel_x1 + 0.038),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y + 0.018 + decel_offset_y)));
+                                float(decel_y1 + 0.018)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
 
                         //yellow core
 
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.002 + decel_offset_x),
+                                float(decel_x1 - 0.002),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                                float(decel_y1 - 0.002)));
                         _output_colors.push_back(Color(1,1,0,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(decel_x1 + 0.002),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y - 0.002 + decel_offset_y)));
+                                float(decel_y1 - 0.002)));
                         _output_colors.push_back(Color(1,1,0,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.002 + decel_offset_x),
+                                float(decel_x1 + 0.002),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y + 0.002 + decel_offset_y)));
+                                float(decel_y1 + 0.002)));
                         _output_colors.push_back(Color(1,1,0,1));
                         _output_normals.push_back(data.normals[loc]);
 
                         // first petal topside
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(decel_x1 + 0.038),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y - 0.024 + decel_offset_y)));
+                                float(decel_y1 - 0.024)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.054 + decel_offset_x),
+                                float(decel_x1 + 0.054),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.002),
-                                float(pos.y - params.origin.y + decel_offset_y)));
+                                float(decel_y1)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.038 + decel_offset_x),
+                                float(decel_x1 + 0.038),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y + 0.018 + decel_offset_y)));
+                                float(decel_y1 + 0.018)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
 
                         // second petal underside
 
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.035 + decel_offset_x),
+                                float(decel_x1 - 0.035),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y + decel_offset_y)));
+                                float(decel_y1)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.043 + decel_offset_x),
+                                float(decel_x1 - 0.043),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.003),
-                                float(pos.y - params.origin.y +0.028 + decel_offset_y)));
+                                float(decel_y1 +0.028)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(decel_x1 - 0.012),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y +0.03 + decel_offset_y)));
+                                float(decel_y1 +0.03)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
 
                         // second petal topside
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.035 + decel_offset_x),
+                                float(decel_x1 - 0.035),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y + decel_offset_y)));
+                                float(decel_y1)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.043 + decel_offset_x),
+                                float(decel_x1 - 0.043),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.002),
-                                float(pos.y - params.origin.y +0.028 + decel_offset_y)));
+                                float(decel_y1 +0.028)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(decel_x1 - 0.012),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y +0.03+ decel_offset_y)));
+                                float(decel_y1 + 0.03)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
 
                         // third petal underside
 
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.02 + decel_offset_x),
+                                float(decel_x1 + 0.02),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y - 0.035 + decel_offset_y)));
+                                float(decel_y1 - 0.035)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(decel_x1 - 0.012),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.003),
-                                float(pos.y - params.origin.y - 0.052 + decel_offset_y)));
+                                float(decel_y1 - 0.052)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.024 + decel_offset_x),
+                                float(decel_x1 - 0.024),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.001),
-                                float(pos.y - params.origin.y - 0.03 + decel_offset_y)));
+                                float(decel_y1 - 0.03)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
 
                         // third petal topside
 
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x + 0.02 + decel_offset_x),
+                                float(decel_x1 + 0.02),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y - 0.035 + decel_offset_y)));
+                                float(decel_y1 - 0.035)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.012 + decel_offset_x),
+                                float(decel_x1 - 0.012),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset-0.002),
-                                float(pos.y - params.origin.y - 0.052 + decel_offset_y)));
+                                float(decel_y1 - 0.052)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
                         _output_vertices.push_back(Vector3(
-                                float(pos.x - params.origin.x - 0.024 + decel_offset_x),
+                                float(decel_x1 - 0.024),
                                 float(data.heights[loc]+((-1)*decel_offset_y*data.normals[loc].z)+((-1)*decel_offset_x*data.normals[loc].x)+height_offset+0.002),
-                                float(pos.y - params.origin.y - 0.03 + decel_offset_y)));
+                                float(decel_y1 - 0.03)));
                         _output_colors.push_back(Color(1,1,1,1));
                         _output_normals.push_back(data.normals[loc]);
 
@@ -690,6 +735,7 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
 
                     }
                     }
+
                     }
 
                 }
