@@ -173,7 +173,16 @@ HeightMapBrushPanel::HeightMapBrushPanel() {
     _Terrain_ItemList->add_item("", make_brush_icon(icon_terrain15_png) , true);
     _Terrain_ItemList->connect("item_selected", this, "_on_param_changed", varray(BRUSH_MODE_CHANGE));
     add_child(_Terrain_ItemList);
-
+    _decels_label = memnew(Label);
+    _decels_label->set_text(TTR("Decels"));
+    _decels_label->set_position(Vector2(660, 0));
+    add_child(_decels_label);
+    _Terrain_Decels_CheckBox = memnew(CheckBox);
+    _Terrain_Decels_CheckBox->set_toggle_mode(true);
+    _Terrain_Decels_CheckBox->set_pressed(false);
+    _Terrain_Decels_CheckBox->set_position(Vector2(730,0));
+    _Terrain_Decels_CheckBox->connect("toggled", this, "_on_param_changed", varray(DECELS_CHANGED));
+    add_child(_Terrain_Decels_CheckBox);
 }
 
 HeightMapBrushPanel::~HeightMapBrushPanel() {
@@ -194,8 +203,9 @@ void HeightMapBrushPanel::init_params(int size, float opacity, float height, int
 }
 
 void HeightMapBrushPanel::on_param_changed(Variant value, int param) {
-
+        int i = 0;
 	switch (param) {
+
 		case BRUSH_SIZE:
 			_size_label->set_text(String::num(value));
             emit_signal(PARAM_CHANGED, value, param);
@@ -209,14 +219,16 @@ void HeightMapBrushPanel::on_param_changed(Variant value, int param) {
             emit_signal(PARAM_CHANGED, value, param);
             break;
         case BRUSH_MODE_CHANGE:
-            int i = _Terrain_ItemList->get_current();
+            i = _Terrain_ItemList->get_current();
             emit_signal(PARAM_CHANGED, i, param);
             break;
-    }
+        case DECELS_CHANGED:
+            if (_Terrain_Decels_CheckBox->is_pressed()) {
+            emit_signal(PARAM_CHANGED, true, param);
+            } else {  emit_signal(PARAM_CHANGED, true, param);}
+            break;
 
-
-
-
+        }
 }
 
 void HeightMapBrushPanel::_bind_methods() {

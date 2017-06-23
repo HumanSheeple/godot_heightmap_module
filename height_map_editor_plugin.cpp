@@ -102,7 +102,7 @@ void HeightMapEditorPlugin::make_visible(bool p_visible) {
 
 
 void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
-
+    int i;
 	switch (param) {
 		case HeightMapBrushPanel::BRUSH_SIZE:
 			_brush.set_radius(value);
@@ -117,7 +117,6 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
 			break;
 
         case HeightMapBrushPanel::BRUSH_MODE_CHANGE:
-            int i;
             i = int(value);
             switch (i) {
                 case 0:
@@ -138,11 +137,11 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 5:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,0,0,0));
+                    _brush.set_color(Color(1,1,1,1));
                     break;
                 case 6:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,0,0,1));
+                    _brush.set_color(Color(1,0,1,1));
                     break;
                 case 7:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
@@ -154,11 +153,11 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 9:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,1,0,0));
+                    _brush.set_color(Color(1,0,0,1));
                     break;
                 case 10:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,0,1,0));
+                    _brush.set_color(Color(0,1,1,0));
                     break;
                 case 11:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
@@ -166,7 +165,7 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 12:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(0,1,1,0));
+                    _brush.set_color(Color(0,0,1,1));
                     break;
                 case 13:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
@@ -174,34 +173,43 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
                     break;
                 case 14:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(0,0,1,1));
+                    _brush.set_color(Color(1,0,0,0));
                     break;
                 case 15:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,1,1,0));
+                    _brush.set_color(Color(0,1,1,1));
                     break;
                 case 16:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,1,0,1));
+                    _brush.set_color(Color(1,1,1,0));
                     break;
                 case 17:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,0,1,1));
+                    _brush.set_color(Color(1,1,0,1));
                     break;
                 case 18:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(0,1,1,1));
+                    _brush.set_color(Color(1,0,1,0));
                     break;
                 case 19:
                     _brush.set_mode(HeightMapBrush::MODE_TEXTURE);
-                    _brush.set_color(Color(1,1,1,1));
+                    _brush.set_color(Color(1,1,0,0));
+
                     break;
             }
 
 
             break;
+            case HeightMapBrushPanel::DECELS_CHANGED:
+                if (bool(value) == true){
+                    if (_height_map->_decels_enabled == false) {
+                        _height_map->_decels_enabled = true;
+                    } else { _height_map->_decels_enabled = false; }
 
-		default:
+                } else { _height_map->_decels_enabled = false;}
+            break;
+
+             default:
 			ERR_PRINT("Unknown parameter");
 			break;
 	}

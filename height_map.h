@@ -34,7 +34,7 @@ public:
 	bool cell_raycast(Vector3 origin_world, Vector3 dir_world, Point2i &out_cell_pos);
 
 	HeightMapData &get_data() { return _data; }
-
+    bool _decels_enabled;
 protected:
 	void _notification(int p_what);
 

@@ -1,5 +1,7 @@
 #include "height_map.h"
 #include <scene/3d/camera.h>
+#include "bmaterial.h"
+#include "bterrain_material.h"
 
 #define DEFAULT_RESOLUTION 256
 
@@ -11,6 +13,7 @@ static void s_exit_world_cb(void *context, HeightMapChunk *chunk, Point2i origin
 static void s_transform_changed_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
 static void s_visibility_changed_cb(void *context, HeightMapChunk *chunk, Point2i origin, int lod);
 
+bool _is_created = false;
 HeightMap::HeightMap() {
 	set_notify_transform(true);
 
@@ -34,7 +37,7 @@ HeightMap::~HeightMap() {
 void HeightMap::set_material(Ref<Material> p_material) {
 	if (_material != p_material) {
 		_material = p_material;
-		_lodder.for_all_chunks(s_set_material_cb, this);
+        _lodder.for_all_chunks(s_set_material_cb, this);
 	}
 }
 
@@ -99,14 +102,15 @@ void HeightMap::_notification(int p_what) {
 
 		// TODO TEST, WONT REMAIN HERE
 		case NOTIFICATION_READY: {
-			Point2i size = _data.size();
-			Point2i pos;
-			for (pos.y = 0; pos.y < size.y; ++pos.y) {
-				for (pos.x = 0; pos.x < size.x; ++pos.x) {
-					float h = 2.0 * (Math::cos(pos.x * 0.2) + Math::sin(pos.y * 0.2));
-					_data.heights.set(pos, h);
-				}
-			}
+                Point2i size = _data.size();
+                Point2i pos;
+                for (pos.y = 0; pos.y < size.y; ++pos.y) {
+                    for (pos.x = 0; pos.x < size.x; ++pos.x) {
+                        float h = 2.0 * (Math::cos(pos.x * 0.2) + Math::sin(pos.y * 0.2));
+                        _data.heights.set(pos, h);
+                    }
+                }
+            _decels_enabled = false;
 		} break;
 
 		case NOTIFICATION_PROCESS:
@@ -155,6 +159,7 @@ void HeightMap::update_chunk(HeightMapChunk &chunk, int lod) {
 	mesher_params.origin = chunk.cell_origin;
 	mesher_params.size = Point2i(CHUNK_SIZE, CHUNK_SIZE);
 	mesher_params.smooth = true; // TODO Implement this option
+    mesher_params.decels_enabled = _decels_enabled;
 
 	if (mesher_params.smooth) {
 		Point2i cell_size = mesher_params.size;

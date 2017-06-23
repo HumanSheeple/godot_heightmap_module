@@ -12,6 +12,7 @@ public:
 	struct Params {
 		Point2i origin;
 		Point2i size;
+        bool decels_enabled;
 		bool smooth;
 		int lod;
 		int seams[4];
@@ -19,6 +20,7 @@ public:
 		Params() {
 			smooth = true;
 			lod = 0;
+            decels_enabled = false;
 			for (int i = 0; i < 4; ++i)
 				seams[i] = 0;
 		}

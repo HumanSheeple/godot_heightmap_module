@@ -247,6 +247,7 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
             _output_indices.push_back(i-params.size.x);
         }
         //draw decels
+        if (params.decels_enabled==true) {
         i = (params.size.x+1)*(params.size.y+1);
         float decel_offset_x = -0.5;
         float decel_offset_y = -0.5;
@@ -1705,7 +1706,7 @@ Ref<Mesh> HeightMapMesher::make_chunk(Params params, const HeightMapData &data) 
 
         }
 
-
+}
 
     PoolVector<Vector3> pool_vertices;
     PoolVector<Vector3> pool_normals;

@@ -8,7 +8,7 @@
 #include "height_map_brush_panel.h"
 
 class HeightMapEditorPlugin : public EditorPlugin {
-	GDCLASS(HeightMapEditorPlugin, EditorPlugin)
+    GDCLASS(HeightMapEditorPlugin, EditorPlugin);
 public:
 	HeightMapEditorPlugin(EditorNode *p_editor);
 	~HeightMapEditorPlugin();
