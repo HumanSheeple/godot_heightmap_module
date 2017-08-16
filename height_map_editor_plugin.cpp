@@ -1,5 +1,6 @@
 #include <core/os/input.h>
 #include <scene/3d/camera.h>
+#include <scene/scene_string_names.h>
 
 #include "height_map_editor_plugin.h"
 
@@ -10,6 +11,7 @@ inline Ref<Texture> get_icon(String name) {
 HeightMapEditorPlugin::HeightMapEditorPlugin(EditorNode *p_editor) {
 	_editor = p_editor;
 	_mouse_pressed = false;
+    _height_map = NULL;
 
 	_brush.set_radius(5);
 
@@ -26,6 +28,7 @@ HeightMapEditorPlugin::HeightMapEditorPlugin(EditorNode *p_editor) {
 	_toolbar = memnew(HBoxContainer);
 	add_control_to_container(CONTAINER_SPATIAL_EDITOR_MENU, _toolbar);
 	_toolbar->hide();
+    get_resource_previewer()->add_preview_generator(Ref<EditorResourcePreviewGenerator>(memnew(HeightMapPreviewGenerator())));
 
 }
 
@@ -33,6 +36,9 @@ HeightMapEditorPlugin::~HeightMapEditorPlugin() {
 }
 
 bool HeightMapEditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Ref<InputEvent> &p_event) {
+    ERR_FAIL_COND_V(_height_map == NULL, false);
+
+    _height_map->_manual_viewer_pos = p_camera->get_global_transform().origin;
 
 	bool captured_event = false;
 
@@ -52,7 +58,51 @@ bool HeightMapEditorPlugin::forward_spatial_gui_input(Camera *p_camera, const Re
 					_mouse_pressed = true;
 				captured_event = true;
 
-				// TODO Prepare undo/redo
+                if(_mouse_pressed == false) {
+                    // Just finished painting
+
+                    ERR_FAIL_COND_V(_height_map->get_data().is_null(), captured_event);
+                    HeightMapData *heightmap_data = *_height_map->get_data();
+
+                    HeightMapBrush::UndoData ur_data = _brush.pop_undo_redo_data(*heightmap_data);
+
+                    Dictionary undo_data;
+                    undo_data["chunk_positions"] = ur_data.chunk_positions;
+                    undo_data["data"] = ur_data.undo;
+                    undo_data["channel"] = ur_data.channel;
+
+                    Dictionary redo_data;
+                    redo_data["chunk_positions"] = ur_data.chunk_positions;
+                    redo_data["data"] = ur_data.redo;
+                    redo_data["channel"] = ur_data.channel;
+
+                    UndoRedo &ur = *EditorNode::get_singleton()->get_undo_redo();
+
+                    String action_name;
+                    switch(ur_data.channel) {
+                        case HeightMapData::CHANNEL_COLOR:
+                            action_name = TTR("Modify HeightMapData Color");
+                            break;
+                        case HeightMapData::CHANNEL_HEIGHT:
+                            action_name = TTR("Modify HeightMapData Height");
+                            break;
+                        default:
+                            action_name = TTR("Modify HeightMapData");
+                            break;
+                    }
+
+                    ur.create_action(action_name);
+                    ur.add_do_method(heightmap_data, "_apply_undo", redo_data);
+                    ur.add_undo_method(heightmap_data, "_apply_undo", undo_data);
+
+                    // Small hack here:
+                    // commit_actions executes the do method, however terrain modifications are heavy ones,
+                    // so we don't really want to re-run an update in every chunk that was modified during painting.
+                    // The data is already in its final state, so we just prevent the resource from applying changes here.
+                    heightmap_data->_disable_apply_undo = true;
+                    ur.commit_action();
+                    heightmap_data->_disable_apply_undo = false;
+                }
 			}
 		}
 
@@ -88,7 +138,24 @@ void HeightMapEditorPlugin::paint(Camera &camera, Vector2 screen_pos, int overri
 }
 
 void HeightMapEditorPlugin::edit(Object *p_object) {
-	_height_map = p_object ? p_object->cast_to<HeightMap>() : NULL;
+
+    //printf("Edit %i\n", p_object);
+    HeightMap *node = p_object ? p_object->cast_to<HeightMap>() : NULL;
+
+    if(_height_map) {
+        _height_map->disconnect(SceneStringNames::get_singleton()->tree_exited, this, "_height_map_exited_scene");
+    }
+
+    _height_map = node;
+
+    if(_height_map) {
+        _height_map->connect(SceneStringNames::get_singleton()->tree_exited, this, "_height_map_exited_scene");
+    }
+}
+
+void HeightMapEditorPlugin::_height_map_exited_scene() {
+    //print_line("HeightMap exited scene");
+    edit(NULL);
 }
 
 bool HeightMapEditorPlugin::handles(Object *p_object) const {
@@ -218,4 +285,54 @@ void HeightMapEditorPlugin::on_brush_param_changed(Variant value, int param) {
 void HeightMapEditorPlugin::_bind_methods() {
 
 	ClassDB::bind_method(D_METHOD("_on_brush_param_changed", "value", "param"), &HeightMapEditorPlugin::on_brush_param_changed);
+    ClassDB::bind_method(D_METHOD("_height_map_exited_scene"), &HeightMapEditorPlugin::_height_map_exited_scene);
+}
+
+bool HeightMapPreviewGenerator::handles(const String &p_type) const {
+    return p_type == "HeightMapData";
+}
+
+Ref<Texture> HeightMapPreviewGenerator::generate(const Ref<Resource> &p_from) {
+
+    Ref<HeightMapData> data_ref = p_from;
+    ERR_FAIL_COND_V(data_ref.is_null(), Ref<Texture>());
+    HeightMapData &data = **data_ref;
+
+    if(data.heights.size().x == 0 || data.heights.size().y == 0)
+        return Ref<Texture>();
+
+    int thumbnail_size = EditorSettings::get_singleton()->get("filesystem/file_dialog/thumbnail_size");
+    thumbnail_size *= EDSCALE;
+    Ref<Image> img_ref;
+    img_ref.instance();
+    Image &im = **img_ref;
+
+    im.create(thumbnail_size, thumbnail_size, 0, Image::FORMAT_RGBA8);
+
+    im.lock();
+
+    Vector3 light_dir = Vector3(-1, -0.5, -1).normalized();
+
+    for(int y = 0; y < im.get_height(); ++y) {
+        for(int x = 0; x < im.get_width(); ++x) {
+
+            float fx = static_cast<float>(x) / im.get_width();
+            float fy = static_cast<float>(im.get_height() - y - 1) / im.get_height();
+            Point2i mpos(fx * data.heights.size().x, fy * data.heights.size().y);
+
+            Vector3 n = data.normals.get(mpos);
+            float ndot = -n.dot(light_dir);
+            float gs = CLAMP(0.5*ndot+0.5, 0.0, 1.0);
+            Color col(gs, gs, gs, 1.0);
+
+            im.put_pixel(x, y, col);
+        }
+    }
+
+    im.unlock();
+
+    Ref<ImageTexture> ptex = Ref<ImageTexture>(memnew(ImageTexture));
+
+    ptex->create_from_image(img_ref, 0);
+    return ptex;
 }

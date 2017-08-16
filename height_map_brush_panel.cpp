@@ -200,6 +200,8 @@ void HeightMapBrushPanel::init_params(int size, float opacity, float height, int
 	_opacity_slider->set_as_ratio(opacity);
 	_height_edit->set_value(height);
     _Terrain_ItemList->select(mode);
+    _size_label->set_text(String::num(size));
+    _opacity_label->set_text(String::num(opacity));
 }
 
 void HeightMapBrushPanel::on_param_changed(Variant value, int param) {

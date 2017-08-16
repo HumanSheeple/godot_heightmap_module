@@ -6,281 +6,251 @@
 #include <core/math/vector3.h>
 #include <core/variant.h>
 
+// Independent quad tree designed to handle LOD
 template <typename T>
 class QuadTreeLod {
 
 private:
-	struct Node {
-		Node *children[4];
-		Point2i origin;
+    struct Node {
+        Node *children[4];
+        Point2i origin;
 
-		// Userdata.
-		// Note: the tree doesn't own this field,
-		// if it's a pointer make sure you free it when you don't need it anymore,
-		// using the recycling callback
-		T chunk;
+        // Userdata.
+        // Note: the tree doesn't own this field,
+        // if it's a pointer make sure you free it when you don't need it anymore,
+        // using the recycling callback
+        T chunk;
 
-		Node() {
-			chunk = T();
-			for (int i = 0; i < 4; ++i) {
-				children[i] = NULL;
-			}
-		}
+        Node() {
+            chunk = T();
+            for (int i = 0; i < 4; ++i) {
+                children[i] = NULL;
+            }
+        }
 
-		~Node() {
-			clear_children();
-		}
+        ~Node() {
+            clear_children();
+        }
 
-		void clear() {
-			clear_children();
-			chunk = T();
-		}
+        void clear() {
+            clear_children();
+            chunk = T();
+        }
 
-		void clear_children() {
-			if (has_children()) {
-				for (int i = 0; i < 4; ++i) {
-					memdelete(children[i]);
-					children[i] = NULL;
-				}
-			}
-		}
+        void clear_children() {
+            if (has_children()) {
+                for (int i = 0; i < 4; ++i) {
+                    memdelete(children[i]);
+                    children[i] = NULL;
+                }
+            }
+        }
 
-		bool has_children() {
-			return children[0] != NULL;
-		}
-	};
+        bool has_children() {
+            return children[0] != NULL;
+        }
+    };
 
 public:
-	typedef T (*MakeFunc)(void *context, Point2i origin, int lod);
-	typedef void (*QueryFunc)(void *context, T chunk, Point2i origin, int lod);
-	typedef QueryFunc RecycleFunc;
+    // TODO There could be a way to get rid of those filthy void*
+    typedef T (*MakeFunc)(void *context, Point2i origin, int lod);
+    typedef void (*QueryFunc)(void *context, T chunk, Point2i origin, int lod);
+    typedef QueryFunc RecycleFunc;
 
-	MakeFunc make_func;
-	RecycleFunc recycle_func;
-	void *callbacks_context;
+    QuadTreeLod() {
 
-	QuadTreeLod() {
-		_max_depth = 0;
-		_base_size = 0;
-		callbacks_context = NULL;
-		make_func = NULL;
-		recycle_func = NULL;
-		_split_scale = 3;
-	}
+        _max_depth = 0;
+        _base_size = 0;
+        _split_scale = 3;
 
-	//~QuadTreeLod() {}
+        _callbacks_context = NULL;
+        _make_func = NULL;
+        _recycle_func = NULL;
+    }
 
-	void create_from_sizes(int base_size, int full_size) {
-		for_all_chunks(recycle_func, callbacks_context);
+    void set_callbacks(MakeFunc make_cb, RecycleFunc recycle_cb, void *context) {
+        _make_func = make_cb;
+        _recycle_func = recycle_cb;
+        _callbacks_context = context;
+    }
 
-		_grids.clear();
-		_tree.clear_children();
+    void clear() {
+        join_recursively(_tree, _max_depth);
 
-		_base_size = base_size;
+        _tree.clear_children();
 
-		int po = 0;
-		while (full_size > base_size) {
-			full_size = full_size >> 1;
-			++po;
-		}
+        _max_depth = 0;
+        _base_size = 0;
+    }
 
-		_max_depth = po;
+    void create_from_sizes(int base_size, int full_size) {
 
-		_grids.resize(po + 1);
-	}
+        clear();
 
-	inline int get_lod_count() {
-		return _max_depth;
-	}
+        _base_size = base_size;
 
-	// The higher, the longer LODs will spread and higher the quality.
-	// The lower, the shorter LODs will spread and lower the quality.
-	void set_split_scale(float p_split_scale) {
-		const float min = 2.0;
-		const float max = 5.0;
+        int po = 0;
+        while (full_size > base_size) {
+            full_size = full_size >> 1;
+            ++po;
+        }
 
-		// Split scale must be greater than a threshold,
-		// otherwise lods will decimate too fast and it will look messy
-		if (p_split_scale < min)
-			p_split_scale = min;
-		if (p_split_scale > max)
-			p_split_scale = max;
+        _max_depth = po;
+    }
 
-		_split_scale = p_split_scale;
-	}
+    // TODO This returns a maximum, not a count. Would be better for it to be a count (+1)
+    inline int get_lod_count() {
+        return _max_depth;
+    }
 
-	inline float get_split_scale() const {
-		return _split_scale;
-	}
+    // The higher, the longer LODs will spread and higher the quality.
+    // The lower, the shorter LODs will spread and lower the quality.
+    void set_split_scale(float p_split_scale) {
+        const float min = 2.0;
+        const float max = 5.0;
 
-	bool try_get_chunk_at(T &out_chunk, Point2i pos, int lod) {
-		HashMap<Point2i, T> &grid = _grids[lod];
-		T *chunk = grid.getptr(pos);
-		if (chunk) {
-			out_chunk = *chunk;
-			return true;
-		}
-		return false;
-	}
+        // Split scale must be greater than a threshold,
+        // otherwise lods will decimate too fast and it will look messy
+        if (p_split_scale < min)
+            p_split_scale = min;
+        if (p_split_scale > max)
+            p_split_scale = max;
 
-	void update(Vector3 viewer_pos, void *callbacks_context) {
-		update_nodes_recursive(_tree, _max_depth, viewer_pos, callbacks_context);
-		make_chunks_recursively(_tree, _max_depth, callbacks_context);
-	}
+        _split_scale = p_split_scale;
+    }
 
-	inline int get_lod_size(int lod) const {
-		return 1 << lod;
-	}
+    inline float get_split_scale() const {
+        return _split_scale;
+    }
 
-	inline int get_split_distance(int lod) const {
-		return _base_size * get_lod_size(lod) * _split_scale;
-	}
+    void update(Vector3 viewer_pos) {
+        update_nodes_recursive(_tree, _max_depth, viewer_pos);
+        make_chunks_recursively(_tree, _max_depth);
+    }
 
-	void for_all_chunks(QueryFunc action_cb, void *callback_context) {
-		for_all_chunks_recursive(action_cb, callback_context, _tree, _max_depth);
-	}
+    // TODO Should be renamed get_lod_factor
+    inline int get_lod_size(int lod) const {
+        return 1 << lod;
+    }
 
-	// Takes a rectangle in highest LOD coordinates,
-	// and calls a function on all chunks of that LOD or higher LODs.
-	void for_chunks_in_rect(QueryFunc action_cb, Point2i cpos0, Point2i csize, void *callback_context) const {
+    inline int get_split_distance(int lod) const {
+        return _base_size * get_lod_size(lod) * _split_scale;
+    }
 
-		// For each lod
-		for (int lod = 0; lod < _grids.size(); ++lod) {
-
-			// Get grid and chunk size
-			const HashMap<Point2i, T> &grid = _grids[lod];
-			int s = get_lod_size(lod);
-
-			// Convert rect into this lod's coordinates
-			Point2i min = cpos0 / s;
-			Point2i max = cpos0 + csize + Point2i(1, 1);
-
-			// Find which chunks are within
-			Point2i cpos;
-			for (cpos.y = min.y; cpos.y < max.y; ++cpos.y) {
-				for (cpos.x = min.x; cpos.x < max.x; ++cpos.x) {
-
-					T const *chunk_ptr = grid.getptr(cpos);
-
-					if (chunk_ptr) {
-						T chunk = *chunk_ptr;
-						action_cb(callback_context, chunk, cpos, lod);
-					}
-				}
-			}
-		}
-	}
+//	void for_all_chunks(QueryFunc action_cb, void *callback_context) {
+//		for_all_chunks_recursive(action_cb, callback_context, _tree, _max_depth);
+//	}
 
 private:
-	T make_chunk(void *callbacks_context, int lod, Point2i origin) {
-		T chunk = T();
-		if (make_func) {
-			chunk = make_func(callbacks_context, origin, lod);
-			if (chunk)
-				_grids[lod][origin] = chunk;
-		}
-		return chunk;
-	}
+    T make_chunk(int lod, Point2i origin) {
+        T chunk = T();
+        if (_make_func) {
+            chunk = _make_func(_callbacks_context, origin, lod);
+        }
+        return chunk;
+    }
 
-	void recycle_chunk(void *callbacks_context, T chunk, Point2i origin, int lod) {
-		if (recycle_func)
-			recycle_func(callbacks_context, chunk, origin, lod);
-		_grids[lod].erase(origin);
-	}
+    void recycle_chunk(T chunk, Point2i origin, int lod) {
+        if (_recycle_func)
+            _recycle_func(_callbacks_context, chunk, origin, lod);
+    }
 
-	void join_recursively(Node &node, int lod, void *callbacks_context) {
-		if (node.has_children()) {
-			for (int i = 0; i < 4; ++i) {
-				Node *child = node.children[i];
-				join_recursively(*child, lod - 1, callbacks_context);
-			}
-			node.clear_children();
-		} else if (node.chunk) {
-			recycle_chunk(callbacks_context, node.chunk, node.origin, lod);
-			node.chunk = T();
-		}
-	}
+    void join_recursively(Node &node, int lod) {
+        if (node.has_children()) {
+            for (int i = 0; i < 4; ++i) {
+                Node *child = node.children[i];
+                join_recursively(*child, lod - 1);
+            }
+            node.clear_children();
+        } else if (node.chunk) {
+            recycle_chunk(node.chunk, node.origin, lod);
+            node.chunk = T();
+        }
+    }
 
-	void update_nodes_recursive(Node &node, int lod, Vector3 viewer_pos, void *callbacks_context) {
-		//print_line(String("update_nodes_recursive lod={0}, o={1}, {2} ").format(varray(lod, node.origin.x, node.origin.y)));
+    void update_nodes_recursive(Node &node, int lod, Vector3 viewer_pos) {
+        //print_line(String("update_nodes_recursive lod={0}, o={1}, {2} ").format(varray(lod, node.origin.x, node.origin.y)));
 
-		int lod_size = get_lod_size(lod);
-		Vector3 world_center = (_base_size * lod_size) * (Vector3(node.origin.x, 0, node.origin.y) + Vector3(0.5, 0, 0.5));
-		real_t split_distance = get_split_distance(lod);
+        int lod_size = get_lod_size(lod);
+        Vector3 world_center = (_base_size * lod_size) * (Vector3(node.origin.x, 0, node.origin.y) + Vector3(0.5, 0, 0.5));
+        real_t split_distance = get_split_distance(lod);
 
-		if (node.has_children()) {
-			// Test if it should be joined
-			// TODO Distance should take the chunk's Y dimension into account
-			if (world_center.distance_to(viewer_pos) > split_distance) {
-				join_recursively(node, lod, callbacks_context);
-			}
+        if (node.has_children()) {
+            // Test if it should be joined
+            // TODO Distance should take the chunk's Y dimension into account
+            if (world_center.distance_to(viewer_pos) > split_distance) {
+                join_recursively(node, lod);
+            }
 
-		} else if (lod > 0) {
-			// Test if it should split
-			if (world_center.distance_to(viewer_pos) < split_distance) {
-				// Split
+        } else if (lod > 0) {
+            // Test if it should split
+            if (world_center.distance_to(viewer_pos) < split_distance) {
+                // Split
 
-				for (int i = 0; i < 4; ++i) {
-					Node *child = memnew(Node);
-					Point2i origin = node.origin * 2 + Point2i(i & 1, (i & 2) >> 1);
-					child->origin = origin;
-					node.children[i] = child;
-				}
+                for (int i = 0; i < 4; ++i) {
+                    Node *child = memnew(Node);
+                    Point2i origin = node.origin * 2 + Point2i(i & 1, (i & 2) >> 1);
+                    child->origin = origin;
+                    node.children[i] = child;
+                }
 
-				if (node.chunk) {
-					recycle_chunk(callbacks_context, node.chunk, node.origin, lod);
-				}
+                if (node.chunk) {
+                    recycle_chunk(node.chunk, node.origin, lod);
+                }
 
-				node.chunk = T();
-			}
-		}
+                node.chunk = T();
+            }
+        }
 
-		// TODO This will check all chunks every frame,
-		// we could find a way to recursively update chunks as they get joined/split,
-		// but in C++ that would be not even needed.
-		if (node.has_children()) {
-			for (int i = 0; i < 4; ++i) {
-				update_nodes_recursive(*node.children[i], lod - 1, viewer_pos, callbacks_context);
-			}
-		}
-	}
+        // TODO This will check all chunks every frame,
+        // we could find a way to recursively update chunks as they get joined/split,
+        // but in C++ that would be not even needed.
+        if (node.has_children()) {
+            for (int i = 0; i < 4; ++i) {
+                update_nodes_recursive(*node.children[i], lod - 1, viewer_pos);
+            }
+        }
+    }
 
-	void make_chunks_recursively(Node &node, int lod, void *callbacks_context) {
-		ERR_FAIL_COND(lod < 0);
-		if (node.has_children()) {
-			for (int i = 0; i < 4; ++i) {
-				Node *child = node.children[i];
-				make_chunks_recursively(*child, lod - 1, callbacks_context);
-			}
-		} else {
-			if (!node.chunk) {
-				node.chunk = make_chunk(callbacks_context, lod, node.origin);
-				// Note: if you don't return anything here,
-				// make_chunk will continue being called
-			}
-		}
-	}
+    void make_chunks_recursively(Node &node, int lod) {
+        ERR_FAIL_COND(lod < 0);
+        if (node.has_children()) {
+            for (int i = 0; i < 4; ++i) {
+                Node *child = node.children[i];
+                make_chunks_recursively(*child, lod - 1);
+            }
+        } else {
+            if (!node.chunk) {
+                node.chunk = make_chunk(lod, node.origin);
+                // Note: if you don't return anything here,
+                // make_chunk will continue being called
+            }
+        }
+    }
 
-	void for_all_chunks_recursive(QueryFunc action_cb, void *callback_context, Node &node, int lod) {
-		ERR_FAIL_COND(lod < 0);
-		if (node.has_children()) {
-			for (int i = 0; i < 4; ++i) {
-				Node *child = node.children[i];
-				for_all_chunks_recursive(action_cb, callback_context, *child, lod - 1);
-			}
-		} else {
-			if (node.chunk) {
-				action_cb(callback_context, node.chunk, node.origin, lod);
-			}
-		}
-	}
+//	void for_all_chunks_recursive(QueryFunc action_cb, void *callback_context, Node &node, int lod) {
+//		ERR_FAIL_COND(lod < 0);
+//		if (node.has_children()) {
+//			for (int i = 0; i < 4; ++i) {
+//				Node *child = node.children[i];
+//				for_all_chunks_recursive(action_cb, callback_context, *child, lod - 1);
+//			}
+//		} else {
+//			if (node.chunk) {
+//				action_cb(callback_context, node.chunk, node.origin, lod);
+//			}
+//		}
+//	}
 
 private:
-	Node _tree;
-	Vector<HashMap<Point2i, T> > _grids;
-	int _max_depth;
-	int _base_size;
-	float _split_scale;
+    Node _tree;
+    int _max_depth;
+    int _base_size;
+    float _split_scale;
+
+    MakeFunc _make_func;
+    RecycleFunc _recycle_func;
+    void *_callbacks_context;
 };
 
 #endif // QUAD_TREE_LOD_H

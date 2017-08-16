@@ -8,7 +8,7 @@
 #include "height_map_brush_panel.h"
 
 class HeightMapEditorPlugin : public EditorPlugin {
-    GDCLASS(HeightMapEditorPlugin, EditorPlugin);
+    GDCLASS(HeightMapEditorPlugin, EditorPlugin)
 public:
 	HeightMapEditorPlugin(EditorNode *p_editor);
 	~HeightMapEditorPlugin();
@@ -25,6 +25,7 @@ protected:
 
 private:
 	void on_brush_param_changed(Variant value, int param);
+    void _height_map_exited_scene();
 	void paint(Camera &camera, Vector2 screen_pos, int override_mode = -1);
 
 private:
@@ -36,5 +37,13 @@ private:
 
 	bool _mouse_pressed;
 };
+
+class HeightMapPreviewGenerator : public EditorResourcePreviewGenerator {
+    GDCLASS(HeightMapPreviewGenerator, EditorResourcePreviewGenerator)
+public:
+    bool handles(const String &p_type) const;
+    Ref<Texture> generate(const Ref<Resource> &p_from);
+};
+
 
 #endif // HEIGHT_MAP_EDITOR_PLUGIN_H
